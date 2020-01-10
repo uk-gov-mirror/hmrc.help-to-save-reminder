@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.config
+package uk.gov.hmrc.helptosavereminder.actors
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import akka.actor.Actor
+import javax.inject.Singleton
+import play.api.Logger
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
-
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
-
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+class ReminderActor extends Actor {
+  override def receive: Receive = {
+    case _ => {
+      Logger.info("Reminder job started")
+      //TODO: Query mongo for all reminders with a next send date less than or equal to today
+      //TODO: Foreach record trigger an email to be sent through digital contact
+      //TODO: If response from digital contact = 202 then update reminder in mongo to have a new next send date
+    }
+  }
 }
