@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
+import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneOffset}
+
 import akka.actor.{ActorRef, ActorSystem}
 import javax.inject.{Inject, Named, Singleton}
-import org.joda.time.DateTime
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -29,30 +30,24 @@ class ReminderScheduler @Inject()(val system: ActorSystem,
                                  @Named("reminder-actor") val reminderActor: ActorRef,
                                   config: Configuration)(implicit ec: ExecutionContext) {
 
-  val interval = config.get[FiniteDuration]("reminder-job.interval")
+  val interval = 24 hours
 
-  // Calculate the initial delay based on the desired start hours defined in the config
-  def delay: Long = {
-    val now = DateTime.now()
-    val start = config.get[Seq[Int]]("reminder-job.start")
-    start.map( h =>
-      if(now.getHourOfDay >= h) {
-        now.plusDays(1)
-          .withHourOfDay(h)
-          .withMinuteOfHour(0)
-          .withSecondOfMinute(0)
-          .withMillisOfSecond(0)
-          .minus(now.getMillis)
-          .getMillis
-      } else {
-        now.withHourOfDay(h)
-          .withMinuteOfHour(0)
-          .withSecondOfMinute(0)
-          .withMillisOfSecond(0)
-          .minus(now.getMillis)
-          .getMillis
-      }).sorted.head
+  val startTimes: Array[LocalTime] = config.get[String]("reminder-job.scheduleFor").split(',') map { LocalTime.parse(_)}
+
+  val actors = startTimes map { time =>
+    val delay = calculateInitialDelay(time)
+    Logger.info(s"Scheduling reminder job for ${time.toString} by creating an initial delay of $delay seconds")
+    system.scheduler.schedule(delay, interval, reminderActor, "")
   }
 
-  val actor = system.scheduler.schedule(delay.milliseconds, interval, reminderActor, "")
+  private def calculateInitialDelay(time: LocalTime): FiniteDuration = {
+    val now = LocalDateTime.now
+    val target = LocalDateTime.of(LocalDate.now, time)
+
+    if(target.isBefore(now)) {
+      (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
+    } else {
+      (target.toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
+    }
+  }
 }
