@@ -24,7 +24,7 @@ import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import scala.concurrent.Future
 
 @Singleton()
-class MicroserviceHelloWorldController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
+class MicroserviceHelloWorldController @Inject() (appConfig: AppConfig, cc: ControllerComponents)
     extends BackendController(cc) {
 
   def hello(): Action[AnyContent] = Action.async { implicit request =>

@@ -16,6 +16,4 @@
 
 package uk.gov.hmrc.helptosavereminder.services
 
-class ReminderService {
-
-}
+class ReminderService {}

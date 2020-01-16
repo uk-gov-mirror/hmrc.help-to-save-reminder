@@ -23,8 +23,8 @@ import play.api.Logger
 @Singleton
 class ReminderActor extends Actor {
   override def receive: Receive = {
-    case _ => {
-      Logger.info("Reminder job started")
+    case inputMessage: String => {
+      Logger.info("Input message new is " + inputMessage)
       //TODO: Query mongo for all reminders with a next send date less than or equal to today
       //TODO: Foreach record trigger an email to be sent through digital contact
       //TODO: If response from digital contact = 202 then update reminder in mongo to have a new next send date

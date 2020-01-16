@@ -16,6 +16,4 @@
 
 package uk.gov.hmrc.helptosavereminder.controllers
 
-class ReminderController {
-
-}
+class ReminderController {}

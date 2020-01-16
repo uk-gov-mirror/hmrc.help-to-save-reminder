@@ -17,11 +17,13 @@
 package uk.gov.hmrc.helptosavereminder.models
 
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-case class Reminder(recipient: String,
-                    optInStatus: Boolean,
-                    daysToReceive: Seq[Int])
+case class Reminder(recipient: String, optInStatus: Boolean, daysToReceive: Seq[Int])
 
 object Reminder {
   implicit val reminderFormat: Format[Reminder] = Json.format[Reminder]
+  implicit val formats = Json.format[Reminder]
+  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
+  implicit val idFormat = ReactiveMongoFormats.objectIdFormats
 }

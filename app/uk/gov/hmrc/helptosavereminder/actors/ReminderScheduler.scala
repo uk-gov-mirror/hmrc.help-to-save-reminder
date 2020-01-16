@@ -18,36 +18,99 @@ package uk.gov.hmrc.helptosavereminder.actors
 
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneOffset}
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.Actor.Receive
+import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
 import javax.inject.{Inject, Named, Singleton}
 import play.api.{Configuration, Logger}
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
+import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 @Singleton
-class ReminderScheduler @Inject()(val system: ActorSystem,
-                                 @Named("reminder-actor") val reminderActor: ActorRef,
-                                  config: Configuration)(implicit ec: ExecutionContext) {
+class ReminderScheduler @Inject() (
+  val system: ActorSystem,
+  mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
+  config: Configuration
+)(implicit ec: ExecutionContext)
+    extends Actor {
+
+  lazy val requestActor: ActorRef = context.actorOf(Props(classOf[ReminderActor]), "reminder-actor")
+
+  val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
+
+  val lockKeeper = new LockKeeper {
+
+    override def repo: LockRepository = lockrepo //The repo created before
+
+    override def lockId: String = "emailProcessing"
+
+    override val forceLockReleaseAfter: org.joda.time.Duration = org.joda.time.Duration.standardMinutes(5)
+
+    // $COVERAGE-OFF$
+    override def tryLock[T](body: => Future[T])(implicit ec: ExecutionContext): Future[Option[T]] =
+      repo
+        .lock(lockId, serverId, forceLockReleaseAfter)
+        .flatMap { acquired =>
+          if (acquired) {
+            body.map { case x => Some(x) }
+          } else Future.successful(None)
+        }
+        .recoverWith { case ex => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
+    // $COVERAGE-ON$
+  }
+
+  val repository = new HtsReminderMongoRepository(mongoApi)
 
   val interval = 24 hours
 
-  val startTimes: Array[LocalTime] = config.get[String]("reminder-job.scheduleFor").split(',') map { LocalTime.parse(_)}
+  val startTimes: Array[LocalTime] = config.get[String]("reminder-job.scheduleFor").split(',') map {
+    LocalTime.parse(_)
+  }
 
-  val actors = startTimes map { time =>
+  /*val actors: Array[Cancellable] = startTimes map { time =>
     val delay = calculateInitialDelay(time)
     Logger.info(s"Scheduling reminder job for ${time.toString} by creating an initial delay of $delay seconds")
     system.scheduler.schedule(delay, interval, reminderActor, "")
-  }
+  }*/
 
   private def calculateInitialDelay(time: LocalTime): FiniteDuration = {
     val now = LocalDateTime.now
     val target = LocalDateTime.of(LocalDate.now, time)
 
-    if(target.isBefore(now)) {
+    if (target.isBefore(now)) {
       (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
     } else {
       (target.toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
     }
   }
+
+  override def receive: Receive = {
+
+    case "STOP" => {
+      Logger.debug("[ProcessingSupervisor] received while not processing: STOP received")
+      lockrepo.releaseLock(lockKeeper.lockId, lockKeeper.serverId)
+    }
+
+    case "START" => {
+
+      requestActor ! "Welcome Mohan12345 "
+      lockKeeper
+        .tryLock {
+          //  Logger.debug("Starting Processing")
+
+          repository.findHtsUsersToProcess()
+          //process emails
+          //
+        }
+        .map {
+          case Some(thing) => Logger.debug(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
+          case _           => Logger.debug(s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock")
+
+        }
+
+    }
+  }
+
 }
