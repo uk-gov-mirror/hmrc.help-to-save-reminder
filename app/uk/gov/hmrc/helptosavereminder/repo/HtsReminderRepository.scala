@@ -41,7 +41,7 @@ trait HtsReminderRepository {
   def findHtsUsersToProcess(): Future[Option[List[Reminder]]]
 }
 
-class HtsReminderMongoRepository @Inject() (mongo: ReactiveMongoComponent)
+class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     extends ReactiveRepository[Reminder, BSONObjectID](
       collectionName = "help-to-save-reminder",
       mongo = mongo.mongoConnector.db,
@@ -58,7 +58,7 @@ class HtsReminderMongoRepository @Inject() (mongo: ReactiveMongoComponent)
     val testResult = Try {
 
       val usersToProcess = proxyCollection
-        .find(Json.obj("nino" -> "non-empty"))
+        .find(Json.obj())
         .sort(Json.obj("_id" -> 1))
         .cursor[Reminder](ReadPreference.primary)
         .collect[List](-1, Cursor.FailOnError[List[Reminder]]())

@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 @Singleton
-class ReminderScheduler @Inject() (
+class ReminderScheduler @Inject()(
   val system: ActorSystem,
   mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
   config: Configuration
@@ -46,7 +46,7 @@ class ReminderScheduler @Inject() (
 
     override def lockId: String = "emailProcessing"
 
-    override val forceLockReleaseAfter: org.joda.time.Duration = org.joda.time.Duration.standardMinutes(5)
+    override val forceLockReleaseAfter: org.joda.time.Duration = org.joda.time.Duration.standardMinutes(7)
 
     // $COVERAGE-OFF$
     override def tryLock[T](body: => Future[T])(implicit ec: ExecutionContext): Future[Option[T]] =
@@ -86,6 +86,8 @@ class ReminderScheduler @Inject() (
     }
   }
 
+  //private def
+
   override def receive: Receive = {
 
     case "STOP" => {
@@ -96,11 +98,15 @@ class ReminderScheduler @Inject() (
     case "START" => {
 
       requestActor ! "Welcome Mohan12345 "
+
+      system.scheduler.schedule(120 seconds, interval, self, "START")
+
       lockKeeper
         .tryLock {
           //  Logger.debug("Starting Processing")
 
-          repository.findHtsUsersToProcess()
+          //repository.findHtsUsersToProcess()
+          Future.successful(Some(List.empty))
           //process emails
           //
         }

@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class Scheduler @Inject() (
+class Scheduler @Inject()(
   actorSystem: ActorSystem,
   env: Environment,
   mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
