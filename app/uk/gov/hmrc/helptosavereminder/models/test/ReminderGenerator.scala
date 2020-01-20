@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.models
+package uk.gov.hmrc.helptosavereminder.models.test
 
 import java.time.LocalDate
+import java.util.UUID
 
-import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.auth.core.retrieve.Email
-import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.domain.{Generator, Nino}
+import uk.gov.hmrc.helptosavereminder.models.Reminder
 
-case class Reminder(
-  nino: Nino,
-  email: Email,
-  name: String,
-  optInStatus: Boolean,
-  daysToReceive: Seq[Int],
-  nextSendDate: LocalDate)
+import scala.util.Random
 
-object Reminder {
-  implicit val emailFormat = Json.format[Email]
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val idFormat = ReactiveMongoFormats.objectIdFormats
-  implicit val reminderFormat: Format[Reminder] = Json.format[Reminder]
+object ReminderGenerator {
+  private lazy val rand = new Random()
+  private lazy val generator = new Generator(rand)
+
+  private def nino: Nino = generator.nextNino
+  private def email: Email = Email(s"${UUID.randomUUID()}@test.com")
+  private def name: String = "Test Name"
+  private def daysToReceive = Seq(1, 25)
+  private def nextSendDate: LocalDate = LocalDate.parse("2020-01-01")
+
+  def nextReminder: Reminder = Reminder(nino, email, name, true, daysToReceive, nextSendDate)
 }

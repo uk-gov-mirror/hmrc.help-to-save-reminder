@@ -99,7 +99,7 @@ class ReminderScheduler @Inject()(
 
       requestActor ! "Welcome Mohan12345 "
 
-      system.scheduler.schedule(120 seconds, interval, self, "START")
+      // system.scheduler.schedule(120 seconds, interval, self, "START")
 
       lockKeeper
         .tryLock {
@@ -111,8 +111,12 @@ class ReminderScheduler @Inject()(
           //
         }
         .map {
-          case Some(thing) => Logger.debug(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
-          case _           => Logger.debug(s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock")
+          case Some(thing) => {
+
+            Logger.debug(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
+
+          }
+          case _ => Logger.debug(s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock")
 
         }
 
