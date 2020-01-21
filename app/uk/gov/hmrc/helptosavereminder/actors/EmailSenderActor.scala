@@ -16,18 +16,29 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef, Props}
 import javax.inject.Singleton
 import play.api.Logger
+import uk.gov.hmrc.helptosavereminder.models.Reminder
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
-class ReminderActor extends Actor {
+class EmailSenderActor(val mongoApi: play.modules.reactivemongo.ReactiveMongoComponent)(implicit ec: ExecutionContext)
+    extends Actor {
+
+  lazy val htsUserUpdateActor: ActorRef =
+    context.actorOf(Props(classOf[HtsUserUpdateActor], mongoApi, ec), "htsUserUpdate-actor")
+
   override def receive: Receive = {
-    case inputMessage: String => {
-      Logger.info("Input message new is " + inputMessage)
-      //TODO: Query mongo for all reminders with a next send date less than or equal to today
-      //TODO: Foreach record trigger an email to be sent through digital contact
+    case htsUserReminder: Reminder => {
+
+      Logger.info("User to process is " + htsUserReminder.nino)
       //TODO: If response from digital contact = 202 then update reminder in mongo to have a new next send date
+
+      htsUserUpdateActor ! htsUserReminder
+
     }
+
   }
 }

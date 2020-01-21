@@ -18,12 +18,9 @@ package uk.gov.hmrc.helptosavereminder.modules
 
 import com.google.inject.AbstractModule
 import play.api.libs.concurrent.AkkaGuiceSupport
-import uk.gov.hmrc.helptosavereminder.actors.{ReminderActor, ReminderScheduler}
 import uk.gov.hmrc.helptosavereminder.config.Scheduler
 
 class ReminderJobModule extends AbstractModule with AkkaGuiceSupport {
   override def configure(): Unit =
-    //bindActor[ReminderActor]("reminder-actor")
-    //bind(classOf[ReminderScheduler]).asEagerSingleton()
     bind(classOf[Scheduler]).asEagerSingleton()
 }

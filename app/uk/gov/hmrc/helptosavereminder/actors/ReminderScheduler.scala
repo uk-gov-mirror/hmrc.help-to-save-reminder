@@ -18,9 +18,8 @@ package uk.gov.hmrc.helptosavereminder.actors
 
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneOffset}
 
-import akka.actor.Actor.Receive
-import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
-import javax.inject.{Inject, Named, Singleton}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import javax.inject.{Inject, Singleton}
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
@@ -36,7 +35,7 @@ class ReminderScheduler @Inject()(
 )(implicit ec: ExecutionContext)
     extends Actor {
 
-  lazy val requestActor: ActorRef = context.actorOf(Props(classOf[ReminderActor]), "reminder-actor")
+  lazy val requestActor: ActorRef = context.actorOf(Props(classOf[EmailSenderActor], mongoApi, ec), "reminder-actor")
 
   val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
 
@@ -97,18 +96,25 @@ class ReminderScheduler @Inject()(
 
     case "START" => {
 
-      requestActor ! "Welcome Mohan12345 "
-
-      // system.scheduler.schedule(120 seconds, interval, self, "START")
+      //system.scheduler.schedule(120 seconds, interval, self, "START")
 
       lockKeeper
         .tryLock {
           //  Logger.debug("Starting Processing")
 
-          //repository.findHtsUsersToProcess()
-          Future.successful(Some(List.empty))
-          //process emails
-          //
+          repository.findHtsUsersToProcess().map {
+            case Some(requests) if requests.nonEmpty => {
+              Logger.debug(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
+
+              for (request <- requests) {
+                requestActor ! request
+              }
+
+            }
+            case _ => {
+              Logger.debug(s"[ProcessingSupervisor][receive] no requests pending")
+            }
+          }
         }
         .map {
           case Some(thing) => {

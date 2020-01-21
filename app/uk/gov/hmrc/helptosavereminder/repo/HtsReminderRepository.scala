@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.helptosavereminder.repo
 
+import java.time.LocalDate
+
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import play.api.Logger
@@ -23,6 +25,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
 import reactivemongo.api.commands.WriteResult
+import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.helptosavereminder.models.Reminder
@@ -39,6 +42,7 @@ import scala.util.{Failure, Success, Try}
 trait HtsReminderRepository {
   def createReminder(reminder: Reminder): Future[Either[String, Reminder]]
   def findHtsUsersToProcess(): Future[Option[List[Reminder]]]
+  def updateNextSendDate(nino: String): Future[Boolean]
 }
 
 class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
@@ -70,26 +74,61 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
     val testResult = Try {
 
-      val usersToProcess = proxyCollection
+      val usersToProcess: Future[List[Reminder]] = proxyCollection
         .find(Json.obj(), Option.empty[JsObject])
-        .sort(Json.obj("_id" -> 1))
+        .sort(Json.obj("nino" -> 1))
         .cursor[Reminder](ReadPreference.primary)
         .collect[List](-1, Cursor.FailOnError[List[Reminder]]())
+
+      usersToProcess onComplete {
+        case _ => //Log the time
+      }
+      usersToProcess
 
     }
 
     testResult match {
-      case Success(s) => {
-        Future.successful(Some(List.empty))
+      case Success(usersList) => {
+        usersList.map(x => Some(x))
       }
 
       case Failure(f) => {
-        Logger.error(s"[BulkCalculationRepository][findRequestsToProcess] failed: ${f.getMessage}")
+        Logger.error(s"[HtsReminderMongoRepository][findHtsUsersToProcess] failed: ${f.getMessage}")
         //metrics.findRequestsToProcessTimer(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
         Future.successful(None)
       }
     }
 
   }
+
+  override def updateNextSendDate(nino: String): Future[Boolean] = {
+
+    val startTime = System.currentTimeMillis()
+    val selector = Json.obj("nino" -> nino)
+    val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> LocalDate.now()))
+    val result = proxyCollection.update(ordered = false).one(selector, modifier)
+
+    result onComplete {
+      case _ => //Success
+    }
+
+    result
+      .map { lastError =>
+        Logger.debug(s"[HtsReminderMongoRepository][updateNextSendDate] updated:, result : $lastError ")
+        lastError.ok
+      }
+      .recover {
+        // $COVERAGE-OFF$
+        case e =>
+          Logger.error("Failed to update HtsUser", e)
+          false
+        // $COVERAGE-ON$
+      }
+
+  }
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq("nino" -> IndexType.Ascending), Some("nino"), background = true)
+  )
 
 }
