@@ -14,52 +14,33 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.actors
+package uk.gov.hmrc.helptosavereminder.connectors
 
-import akka.actor.{Actor, ActorRef, Props}
 import com.google.inject.Inject
-import javax.inject.Singleton
+import org.joda.time.LocalDate
+import play.api.libs.json.Json
 import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.helptosavereminder.connectors.{ProcessedUploadTemplate, ReceivedUploadTemplate, SendTemplatedEmailRequest}
-import uk.gov.hmrc.helptosavereminder.models.Reminder
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-import scala.concurrent.{ExecutionContext, Future}
+case class ReceivedUploadTemplate(email: String, uploadReference: String)
 
-@Singleton
-class EmailSenderActor @Inject()(
+case class ProcessedUploadTemplate(email: String, uploadReference: String, uploadDate: LocalDate, userId: String)
+
+case class SendTemplatedEmailRequest(to: List[String], templateId: String, parameters: Map[String, String])
+
+object SendTemplatedEmailRequest {
+  implicit val format = Json.format[SendTemplatedEmailRequest]
+}
+
+class EmailConnector @Inject()(
   http: HttpClient,
   environment: Environment,
   val runModeConfiguration: Configuration,
-  servicesConfig: ServicesConfig)(implicit ec: ExecutionContext)
-    extends Actor {
-
-  implicit lazy val hc = HeaderCarrier()
-
-  //lazy val htsUserUpdateActor: ActorRef =
-  //  context.actorOf(Props(classOf[HtsUserUpdateActor], mongoApi, ec), "htsUserUpdate-actor")
-
-  override def receive: Receive = {
-
-    /*case htsUserReminder: Reminder => {
-
-      Logger.info("User to process is " + htsUserReminder.nino)
-
-      //TODO: If response from digital contact = 202 then update reminder in mongo to have a new next send date
-
-
-    }*/
-
-    case "SEND-EMAIL" => {
-
-      val template = ReceivedUploadTemplate("mohan.dolla@digital.hmrc.gov.uk", "upload-ref")
-      sendReceivedTemplatedEmail(template)
-
-    }
-
-  }
+  servicesConfig: ServicesConfig) {
 
   def sendReceivedTemplatedEmail(template: ReceivedUploadTemplate)(implicit hc: HeaderCarrier): Future[Boolean] = {
 

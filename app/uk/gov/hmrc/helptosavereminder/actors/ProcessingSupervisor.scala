@@ -28,14 +28,14 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 @Singleton
-class ReminderScheduler @Inject()(
-  val system: ActorSystem,
+class ProcessingSupervisor @Inject()(
   mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
   config: Configuration
 )(implicit ec: ExecutionContext)
     extends Actor {
 
-  lazy val requestActor: ActorRef = context.actorOf(Props(classOf[EmailSenderActor], mongoApi, ec), "reminder-actor")
+  lazy val emailSenderActor: ActorRef =
+    context.actorOf(Props(classOf[EmailSenderActor], mongoApi, ec), "emailSender-actor")
 
   val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
 
@@ -60,7 +60,7 @@ class ReminderScheduler @Inject()(
     // $COVERAGE-ON$
   }
 
-  val repository = new HtsReminderMongoRepository(mongoApi)
+  lazy val repository = new HtsReminderMongoRepository(mongoApi)
 
   val interval = 24 hours
 
@@ -94,6 +94,10 @@ class ReminderScheduler @Inject()(
       lockrepo.releaseLock(lockKeeper.lockId, lockKeeper.serverId)
     }
 
+    case "SUCCESS" => {
+      println("<<<<<<<<<<<<<<DO NOTHING >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    }
+
     case "START" => {
 
       //system.scheduler.schedule(120 seconds, interval, self, "START")
@@ -107,7 +111,9 @@ class ReminderScheduler @Inject()(
               Logger.debug(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
 
               for (request <- requests) {
-                requestActor ! request
+
+                emailSenderActor ! request
+
               }
 
             }
