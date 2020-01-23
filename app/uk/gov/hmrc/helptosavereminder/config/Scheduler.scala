@@ -48,8 +48,8 @@ class Scheduler @Inject()(
     "emailSender-Actor"
   )
 
-  emailSenderActor ! "SEND-EMAIL"
+  //emailSenderActor ! "SEND-EMAIL"
 
-  //reminderSupervisor ! "START"
+  reminderSupervisor ! "START"
 
 }
