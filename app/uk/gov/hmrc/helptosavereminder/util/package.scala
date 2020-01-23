@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.config
+package uk.gov.hmrc.helptosavereminder
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import scala.concurrent.Future
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+package object util {
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+  implicit def toFuture[A](a: A): Future[A] = Future.successful(a)
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 }

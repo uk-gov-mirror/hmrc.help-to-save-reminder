@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.config
+package uk.gov.hmrc.helptosavereminder.controllers.test
 
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.helptosavereminder.services.test.TestService
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class TestController @Inject()(testService: TestService, cc: ControllerComponents) extends BackendController(cc) {
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+  def populateReminders(n: Int): Action[AnyContent] = Action.async {
+    Future.sequence((0 until n).map(_ => testService.generateAndInsertReminder)).map(_ => Ok)
+  }
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 }

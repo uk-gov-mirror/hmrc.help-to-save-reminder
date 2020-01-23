@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.config
+package uk.gov.hmrc.helptosavereminder.modules
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import com.google.inject.AbstractModule
+import play.api.libs.concurrent.AkkaGuiceSupport
+import uk.gov.hmrc.helptosavereminder.config.Scheduler
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
-
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
-
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
+class ReminderJobModule extends AbstractModule with AkkaGuiceSupport {
+  override def configure(): Unit =
+    bind(classOf[Scheduler]).asEagerSingleton()
 }

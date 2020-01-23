@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.config
+package uk.gov.hmrc.helptosavereminder.services.test
 
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class TestService @Inject()(htsReminderRepository: HtsReminderRepository) {
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+  def generateAndInsertReminder =
+    htsReminderRepository.createReminder(ReminderGenerator.nextReminder)
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 }
