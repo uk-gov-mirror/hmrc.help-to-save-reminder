@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package actors
+package uk.gov.hmrc.actors
 
 import akka.actor.{ActorSystem, Props}
 import akka.testkit._
