@@ -43,12 +43,10 @@ class Scheduler @Inject()(
     "reminder-supervisor"
   )
 
-  lazy val emailSenderActor = actorSystem.actorOf(
-    Props(classOf[EmailSenderActor], httpClient, env, config, servicesConfig, ec),
-    "emailSender-Actor"
-  )
-
-  //emailSenderActor ! "SEND-EMAIL"
+  //lazy val emailSenderActor = actorSystem.actorOf(
+  //  Props(classOf[EmailSenderActor], httpClient, env, config, servicesConfig, ec),
+  //   "emailSender-Actor"
+  // )
 
   reminderSupervisor ! "START"
 

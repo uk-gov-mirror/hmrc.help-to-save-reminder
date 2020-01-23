@@ -25,18 +25,16 @@ import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import scala.concurrent.{ExecutionContext}
 
 @Singleton
-class HtsUserUpdateActor(mongoApi: play.modules.reactivemongo.ReactiveMongoComponent)(implicit ec: ExecutionContext)
-    extends Actor {
-
-  val repository = new HtsReminderMongoRepository(mongoApi)
+class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends Actor {
 
   override def receive: Receive = {
     case reminder: Reminder => {
 
-      Logger.info("Updating the User " + reminder.nino)
-
       repository.updateNextSendDate(reminder.nino.nino).map {
-        case response => {}
+
+        case response => {
+          Logger.info("Updated the User nextSendDate for " + reminder.nino)
+        }
 
         case _ => //Failure
       }

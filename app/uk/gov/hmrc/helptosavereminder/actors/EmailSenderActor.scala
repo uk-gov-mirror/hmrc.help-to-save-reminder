@@ -22,6 +22,7 @@ import javax.inject.Singleton
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.connectors.{ProcessedUploadTemplate, ReceivedUploadTemplate, SendTemplatedEmailRequest}
 import uk.gov.hmrc.helptosavereminder.models.Reminder
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -33,29 +34,29 @@ class EmailSenderActor @Inject()(
   http: HttpClient,
   environment: Environment,
   val runModeConfiguration: Configuration,
-  servicesConfig: ServicesConfig)(implicit ec: ExecutionContext)
+  servicesConfig: ServicesConfig,
+  repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext)
     extends Actor {
 
   implicit lazy val hc = HeaderCarrier()
 
-  //lazy val htsUserUpdateActor: ActorRef =
-  //  context.actorOf(Props(classOf[HtsUserUpdateActor], mongoApi, ec), "htsUserUpdate-actor")
+  lazy val htsUserUpdateActor: ActorRef =
+    context.actorOf(Props(classOf[HtsUserUpdateActor], repository, ec), "htsUserUpdate-actor")
 
   override def receive: Receive = {
 
-    /*case htsUserReminder: Reminder => {
+    case htsUserReminder: Reminder => {
 
-      Logger.info("User to process is " + htsUserReminder.nino)
+      Logger.info("Sending email for the user " + htsUserReminder.nino)
 
-      //TODO: If response from digital contact = 202 then update reminder in mongo to have a new next send date
+      val template = ReceivedUploadTemplate(htsUserReminder.email.value, "upload-ref")
 
-
-    }*/
-
-    case "SEND-EMAIL" => {
-
-      val template = ReceivedUploadTemplate("mohan.dolla@digital.hmrc.gov.uk", "upload-ref")
-      sendReceivedTemplatedEmail(template)
+      sendReceivedTemplatedEmail(template).map {
+        case true => {
+          htsUserUpdateActor ! htsUserReminder
+        }
+        case false =>
+      }
 
     }
 
@@ -72,31 +73,16 @@ class EmailSenderActor @Inject()(
 
   }
 
-  def sendProcessedTemplatedEmail(template: ProcessedUploadTemplate)(implicit hc: HeaderCarrier): Future[Boolean] = {
-
-    val request = SendTemplatedEmailRequest(
-      List(template.email),
-      "gmp_bulk_upload_processed",
-      Map(
-        "fileUploadReference" -> template.uploadReference,
-        "uploadDate"          -> template.uploadDate.toString("dd MMMM yyyy"),
-        "userId"              -> (("*" * 5) + template.userId.takeRight(3))
-      )
-    )
-
-    sendEmail(request)
-  }
-
   private def sendEmail(request: SendTemplatedEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] = {
 
     val url = s"${servicesConfig.baseUrl("email")}/hmrc/email"
 
-    Logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
-
     http.POST(url, request, Seq(("Content-Type", "application/json"))) map { response =>
       response.status match {
-        case 202 => Logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
-        case _   => Logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
+
+        case 202 => Logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
+        case _   => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
+
       }
     }
   }

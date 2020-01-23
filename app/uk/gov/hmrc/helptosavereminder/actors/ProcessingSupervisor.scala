@@ -34,8 +34,10 @@ class ProcessingSupervisor @Inject()(
 )(implicit ec: ExecutionContext)
     extends Actor {
 
+  lazy val repository = new HtsReminderMongoRepository(mongoApi)
+
   lazy val emailSenderActor: ActorRef =
-    context.actorOf(Props(classOf[EmailSenderActor], mongoApi, ec), "emailSender-actor")
+    context.actorOf(Props(classOf[EmailSenderActor], repository, ec), "emailSender-actor")
 
   val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
 
@@ -59,8 +61,6 @@ class ProcessingSupervisor @Inject()(
         .recoverWith { case ex => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
     // $COVERAGE-ON$
   }
-
-  lazy val repository = new HtsReminderMongoRepository(mongoApi)
 
   val interval = 24 hours
 
@@ -92,10 +92,6 @@ class ProcessingSupervisor @Inject()(
     case "STOP" => {
       Logger.debug("[ProcessingSupervisor] received while not processing: STOP received")
       lockrepo.releaseLock(lockKeeper.lockId, lockKeeper.serverId)
-    }
-
-    case "SUCCESS" => {
-      println("<<<<<<<<<<<<<<DO NOTHING >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     }
 
     case "START" => {
