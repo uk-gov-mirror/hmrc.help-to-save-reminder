@@ -20,9 +20,11 @@ import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneOffset}
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import javax.inject.{Inject, Singleton}
-import play.api.{Configuration, Logger}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -30,14 +32,19 @@ import scala.concurrent.duration._
 @Singleton
 class ProcessingSupervisor @Inject()(
   mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
-  config: Configuration
+  config: Configuration,
+  httpClient: HttpClient,
+  env: Environment,
+  servicesConfig: ServicesConfig
 )(implicit ec: ExecutionContext)
     extends Actor {
 
   lazy val repository = new HtsReminderMongoRepository(mongoApi)
 
   lazy val emailSenderActor: ActorRef =
-    context.actorOf(Props(classOf[EmailSenderActor], repository, ec), "emailSender-actor")
+    context.actorOf(
+      Props(classOf[EmailSenderActor], httpClient, env, config, servicesConfig, repository, ec),
+      "emailSender-actor")
 
   val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
 
