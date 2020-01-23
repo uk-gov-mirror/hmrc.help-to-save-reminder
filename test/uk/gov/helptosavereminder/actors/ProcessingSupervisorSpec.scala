@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.actors
+package uk.gov.helptosavereminder.actors
 
 import akka.actor.{ActorSystem, Props}
 import akka.testkit._
