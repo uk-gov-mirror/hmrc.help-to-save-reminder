@@ -20,12 +20,12 @@ import akka.actor.{Actor, ActorRef, Props}
 import com.google.inject.Inject
 import javax.inject.Singleton
 import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.helptosavereminder.connectors.{ProcessedUploadTemplate, ReceivedUploadTemplate, SendTemplatedEmailRequest}
-import uk.gov.hmrc.helptosavereminder.models.Reminder
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, Reminder, SendTemplatedEmailRequest}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.Upstream4xxResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,25 +49,23 @@ class EmailSenderActor @Inject()(
 
       Logger.info("Sending email for the user " + htsUserReminder.nino)
 
-      val template = ReceivedUploadTemplate(htsUserReminder.email.value, "upload-ref")
+      val template = HtsReminderTemplate(htsUserReminder.email.value, htsUserReminder.name)
 
-      sendReceivedTemplatedEmail(template).map {
+      sendReceivedTemplatedEmail(template).map({
         case true => {
           htsUserUpdateActor ! htsUserReminder
         }
         case false =>
-      }
+      })
 
     }
 
   }
 
-  def sendReceivedTemplatedEmail(template: ReceivedUploadTemplate)(implicit hc: HeaderCarrier): Future[Boolean] = {
+  def sendReceivedTemplatedEmail(template: HtsReminderTemplate)(implicit hc: HeaderCarrier): Future[Boolean] = {
 
-    val request = SendTemplatedEmailRequest(
-      List(template.email),
-      "gmp_bulk_upload_received",
-      Map("fileUploadReference" -> template.uploadReference))
+    val request =
+      SendTemplatedEmailRequest(List(template.email), "hts_reminder_email", Map("name" -> template.name))
 
     sendEmail(request)
 
