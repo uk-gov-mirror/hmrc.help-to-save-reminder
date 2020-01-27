@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder
+package uk.gov.hmrc.helptosavereminder.models
 
-import scala.concurrent.Future
+import play.api.libs.json.Json
 
-package object util {
+case class HtsReminderTemplate(email: String, name: String)
 
-  implicit def toFuture[A](a: A): Future[A] = Future.successful(a)
+case class SendTemplatedEmailRequest(to: List[String], templateId: String, parameters: Map[String, String])
 
+object SendTemplatedEmailRequest {
+  implicit val format = Json.format[SendTemplatedEmailRequest]
 }
