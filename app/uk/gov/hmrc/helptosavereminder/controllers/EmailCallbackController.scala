@@ -23,7 +23,7 @@ class EmailCallbackController  @Inject()(environment: Environment,
 
 
   def findBounces(callBackRefrenec: String) = Action.async { implicit request =>
-    val nino=callBackRefrenec.takeRight(10)
+    val nino=callBackRefrenec.takeRight(9)
     repository.updateEmailBounceCount(nino).map {
       case true => {
         Logger.info("Updated the User email bounce count for " + nino)

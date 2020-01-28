@@ -52,7 +52,7 @@ class EmailCallbackControllerSpec extends UnitSpec with Matchers with ScalaFutur
   "The EmailCallbackController" should {
     "be able to increment a bounce count and" should {
       "respond with a 200 when all is good" in {
-        val callBackRefrenece = "100382SN123456B"
+        val callBackRefrenece = "1580214107339YT176603C"
         when(mockRepository.updateEmailBounceCount(any(classOf[Reminder]))).thenReturn(Future.successful(200))
         val result = controller.findBounces(callBackRefrenece)
         result shouldBe Status.200
