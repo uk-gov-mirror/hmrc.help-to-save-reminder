@@ -5,7 +5,7 @@ import com.google.inject.Inject
 import play.api.libs.json.Json
 import play.api.{Configuration, Environment, Logger}
 import play.api.libs.ws.WSResponse
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, MessagesControllerComponents, Result}
 import play.libs.ws.WSClient
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -18,7 +18,7 @@ import scala.util.{Failure, Try}
 
 class EmailCallbackController  @Inject()(environment: Environment,
                                          val runModeConfiguration: Configuration,
-                                         servicesConfig: ServicesConfig,val cc: ControllerComponents,
+                                         servicesConfig: ServicesConfig,val cc: MessagesControllerComponents,
                                          repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends BackendController(cc){
 
 
