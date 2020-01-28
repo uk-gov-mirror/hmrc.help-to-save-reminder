@@ -16,24 +16,55 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor._
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
-import uk.gov.hmrc.helptosavereminder.models.Reminder
+import play.api.{Configuration, Environment, Logger}
+import uk.gov.hmrc.helptosavereminder.models.{Reminder, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
-import scala.concurrent.{ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 @Singleton
-class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends Actor {
+class HtsUserUpdateActor(
+  http: HttpClient,
+  environment: Environment,
+  val runModeConfiguration: Configuration,
+  servicesConfig: ServicesConfig,
+  repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext)
+    extends Actor {
+
+  lazy val htsUserUpdateActor: ActorRef =
+    context.actorOf(Props(classOf[HtsUserUpdateActor], repository, ec), "htsUserUpdate-actor")
+
+  lazy val origSender = context.actorOf(
+    Props(classOf[EmailSenderActor], http, environment, runModeConfiguration, servicesConfig, repository, ec),
+    "emailSender-actor")
 
   override def receive: Receive = {
     case reminder: Reminder => {
 
       repository.updateNextSendDate(reminder.nino.nino).map {
 
-        case response => {
+        case true => {
           Logger.info("Updated the User nextSendDate for " + reminder.nino)
+        }
+
+        case _ => //Failure
+      }
+
+      //TODO: Update reminder in mongo to have a new next send date
+    }
+
+    case updateReminder: UpdateCallBackRef => {
+
+      repository.updateCallBackRef(updateReminder.reminder.nino.nino, updateReminder.callBackRefUrl).map {
+
+        case true => {
+          Logger.info("Updated the User callBackRef for " + updateReminder.reminder.nino.nino)
+          Logger.info("Type of sender actor is " + origSender.getClass)
+          origSender ! UpdateCallBackSuccess(updateReminder.reminder)
         }
 
         case _ => //Failure
