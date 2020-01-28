@@ -34,6 +34,6 @@ object ReminderGenerator {
   private def name: String = "Test Name"
   private def daysToReceive = Seq(1, 25)
   private def nextSendDate: LocalDate = LocalDate.parse("2020-01-01")
-
-  def nextReminder: Reminder = Reminder(nino, email, name, true, daysToReceive, nextSendDate)
+  private def bounceCount: Seq[Int]=Seq(1)
+  def nextReminder: Reminder = Reminder(nino, email, name, true, daysToReceive, nextSendDate,bounceCount)
 }

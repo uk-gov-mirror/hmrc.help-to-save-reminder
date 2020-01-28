@@ -29,7 +29,8 @@ case class Reminder(
   name: String,
   optInStatus: Boolean,
   daysToReceive: Seq[Int],
-  nextSendDate: LocalDate)
+  nextSendDate: LocalDate,
+  bounceCount: Seq[Int])
 
 object Reminder {
   implicit val emailFormat = Json.format[Email]
