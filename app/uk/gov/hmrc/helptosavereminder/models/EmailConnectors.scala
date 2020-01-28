@@ -18,7 +18,7 @@ package uk.gov.hmrc.helptosavereminder.models
 
 import play.api.libs.json.Json
 
-case class HtsReminderTemplate(email: String, name: String)
+case class HtsReminderTemplate(email: String, name: String, callBackUrlRef: String)
 
 case class SendTemplatedEmailRequest(to: List[String], templateId: String, parameters: Map[String, String])
 

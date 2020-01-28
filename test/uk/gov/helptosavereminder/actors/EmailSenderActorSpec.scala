@@ -101,7 +101,7 @@ class EmailSenderActorSpec
 
       val mockResponse = HttpResponse(responseStatus = 202)
 
-      val template = HtsReminderTemplate("joe@bloggs.com", "upload-ref")
+      val template = HtsReminderTemplate("joe@bloggs.com", "upload-ref", "calBakcUrlRef")
       val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
 
       when(
@@ -112,6 +112,9 @@ class EmailSenderActorSpec
         .thenReturn(Future.successful(HttpResponse(202)))
 
       when(mockRepository.updateNextSendDate(any()))
+        .thenReturn(Future.successful(true))
+
+      when(mockRepository.updateCallBackRef(any(), any()))
         .thenReturn(Future.successful(true))
 
       within(5 seconds) {

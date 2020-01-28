@@ -35,5 +35,8 @@ object ReminderGenerator {
   private def daysToReceive = Seq(1, 25)
   private def nextSendDate: LocalDate = LocalDate.parse("2020-01-01")
   private def bounceCount: Seq[Int]=Seq(1)
-  def nextReminder: Reminder = Reminder(nino, email, name, true, daysToReceive, nextSendDate,bounceCount)
+  private def callBackUrlRef: String = "timeStampNINO"
+
+  def nextReminder: Reminder = Reminder(nino, email, name, true, daysToReceive, nextSendDate, bounceCount, callBackUrlRef)
+
 }

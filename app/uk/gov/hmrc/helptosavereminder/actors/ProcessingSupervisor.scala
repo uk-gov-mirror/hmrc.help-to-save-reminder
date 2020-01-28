@@ -22,6 +22,7 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import play.api.{Configuration, Environment, Logger}
+import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -96,12 +97,12 @@ class ProcessingSupervisor @Inject()(
 
   override def receive: Receive = {
 
-    case "STOP" => {
+    case STOP => {
       Logger.debug("[ProcessingSupervisor] received while not processing: STOP received")
       lockrepo.releaseLock(lockKeeper.lockId, lockKeeper.serverId)
     }
 
-    case "START" => {
+    case START => {
 
       //system.scheduler.schedule(120 seconds, interval, self, "START")
 
