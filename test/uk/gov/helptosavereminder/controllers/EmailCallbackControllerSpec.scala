@@ -24,6 +24,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status
+import play.api.mvc.MessagesControllerComponents
 import play.api.test.{FakeRequest, Helpers}
 import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
@@ -48,16 +49,17 @@ class EmailCallbackControllerSpec extends UnitSpec with Matchers with ScalaFutur
   private val appConfig = new AppConfig(configuration, serviceConfig)
   var runMode = mock[RunMode]
   lazy val mockRepository = mock[HtsReminderMongoRepository]
+  lazy val mcc: MessagesControllerComponents = fakeApplication.injector.instanceOf[MessagesControllerComponents]
 
-  private val controller = new EmailCallbackController(env, configuration, serviceConfig, Helpers.stubControllerComponents(), mockRepository)
+  lazy val controller = new EmailCallbackController(env, configuration, serviceConfig, mcc, mockRepository)
 
   "The EmailCallbackController" should {
     "be able to increment a bounce count and" should {
       "respond with a 200 when all is good" in {
         val callBackRefrenece = "1580214107339YT176603C"
         when(mockRepository.updateEmailBounceCount(any())).thenReturn(Future.successful(true))
-        val result = controller.findBounces(callBackRefrenece)
-        result shouldBe true
+        val result = await(controller.findBounces(callBackRefrenece))
+        result shouldBe "sucess"
       }
     }
   }
