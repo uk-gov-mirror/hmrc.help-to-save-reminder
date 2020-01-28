@@ -43,7 +43,9 @@ trait HtsReminderRepository {
   def createReminder(reminder: Reminder): Future[Either[String, Reminder]]
   def findHtsUsersToProcess(): Future[Option[List[Reminder]]]
   def updateNextSendDate(nino: String): Future[Boolean]
+  def updateEmailBounceCount(nino: String): Future[Boolean]
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
+
 }
 
 class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
@@ -133,6 +135,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("callBackUrlRef" -> callBackRef))
+
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
 
     result onComplete {
@@ -142,6 +145,32 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     result
       .map { lastError =>
         Logger.debug(s"[HtsReminderMongoRepository][updateCallBackRef] updated:, result : $lastError ")
+        lastError.ok
+      }
+      .recover {
+        // $COVERAGE-OFF$
+        case e =>
+          Logger.error("Failed to update HtsUser", e)
+          false
+        // $COVERAGE-ON$
+      }
+
+  }
+
+  override def updateEmailBounceCount(nino: String): Future[Boolean] = {
+
+    val selector = Json.obj("nino" -> nino)
+    val modifier = Json.obj("$inc" -> Json.obj("bounceCount" -> 1))
+
+    val result = proxyCollection.update(ordered = false).one(selector, modifier)
+
+    result onComplete {
+      case _ => //Success
+    }
+
+    result
+      .map { lastError =>
+        Logger.debug(s"[HtsReminderMongoRepository][updateEmailBounceCount] incremented:, result : $lastError ")
         lastError.ok
       }
       .recover {

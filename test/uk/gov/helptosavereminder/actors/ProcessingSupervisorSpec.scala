@@ -63,7 +63,6 @@ class ReminderSchedulerSpec
     .build()
 
   lazy val applicationConfig = app.injector.instanceOf[Configuration]
-  //val metrics = app.injector.instanceOf[ApplicationMetrics]
   val mockLockRepo = mock[LockRepository]
 
   val httpClient = mock[HttpClient]

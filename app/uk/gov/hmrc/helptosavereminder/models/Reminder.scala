@@ -30,6 +30,7 @@ case class Reminder(
   optInStatus: Boolean,
   daysToReceive: Seq[Int],
   nextSendDate: LocalDate,
+  bounceCount: Int,
   callBackUrlRef: String)
 
 object Reminder {
@@ -42,6 +43,8 @@ object Reminder {
 object ActorUtils {
   val START = "START"
   val STOP = "STOP"
+  val SUCCESS = "SUCCESS"
+  val FAILURE = "FAILURE"
 }
 
 case class UpdateCallBackRef(reminder: Reminder, callBackRefUrl: String)
