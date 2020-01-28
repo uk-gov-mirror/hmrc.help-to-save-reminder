@@ -23,6 +23,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import play.api.{Application, Configuration, Environment}
 import uk.gov.hmrc.helptosavereminder.actors.{EmailSenderActor, ProcessingSupervisor}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.duration._
@@ -50,6 +51,6 @@ class Scheduler @Inject()(
 
   //emailSenderActor ! "SEND-EMAIL"
 
-  reminderSupervisor ! "START"
+  reminderSupervisor ! START
 
 }

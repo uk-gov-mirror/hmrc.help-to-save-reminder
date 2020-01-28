@@ -29,7 +29,8 @@ case class Reminder(
   name: String,
   optInStatus: Boolean,
   daysToReceive: Seq[Int],
-  nextSendDate: LocalDate)
+  nextSendDate: LocalDate,
+  callBackUrlRef: String)
 
 object Reminder {
   implicit val emailFormat = Json.format[Email]
@@ -37,3 +38,12 @@ object Reminder {
   implicit val idFormat = ReactiveMongoFormats.objectIdFormats
   implicit val reminderFormat: Format[Reminder] = Json.format[Reminder]
 }
+
+object ActorUtils {
+  val START = "START"
+  val STOP = "STOP"
+}
+
+case class UpdateCallBackRef(reminder: Reminder, callBackRefUrl: String)
+
+case class UpdateCallBackSuccess(reminder: Reminder)
