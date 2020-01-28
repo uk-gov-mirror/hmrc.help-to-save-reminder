@@ -31,7 +31,7 @@ class EmailCallbackController  @Inject()(environment: Environment,
 
       case _ => //Failure
     }
-Future.successful(Ok)
+Future.successful(Ok("Sucess"))
   }
 
 }

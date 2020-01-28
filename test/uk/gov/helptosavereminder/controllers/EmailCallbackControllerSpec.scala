@@ -16,6 +16,7 @@
 
 package uk.gov.helptosavereminder.controllers
 
+import org.mockito.ArgumentMatcher
 import org.mockito.Matchers._
 import org.mockito.Mockito.when
 import org.scalatest.Matchers
@@ -29,6 +30,7 @@ import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.controllers.EmailCallbackController
 import uk.gov.hmrc.helptosavereminder.models.Reminder
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import uk.gov.hmrc.play.test.UnitSpec
 
@@ -53,9 +55,9 @@ class EmailCallbackControllerSpec extends UnitSpec with Matchers with ScalaFutur
     "be able to increment a bounce count and" should {
       "respond with a 200 when all is good" in {
         val callBackRefrenece = "1580214107339YT176603C"
-        when(mockRepository.updateEmailBounceCount(any(classOf[Reminder]))).thenReturn(Future.successful(200))
+        when(mockRepository.updateEmailBounceCount(any())).thenReturn(Future.successful(true))
         val result = controller.findBounces(callBackRefrenece)
-        result shouldBe Status.200
+        result shouldBe true
       }
     }
   }
