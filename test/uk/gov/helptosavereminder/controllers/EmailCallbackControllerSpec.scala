@@ -16,20 +16,19 @@
 
 package uk.gov.helptosavereminder.controllers
 
-import org.mockito.ArgumentMatcher
+
 import org.mockito.Matchers._
 import org.mockito.Mockito.when
 import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.http.Status
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.{FakeRequest, Helpers}
 import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.controllers.EmailCallbackController
-import uk.gov.hmrc.helptosavereminder.models.Reminder
+import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
@@ -59,7 +58,7 @@ class EmailCallbackControllerSpec extends UnitSpec with Matchers with ScalaFutur
         val callBackRefrenece = "1580214107339YT176603C"
         when(mockRepository.updateEmailBounceCount(any())).thenReturn(Future.successful(true))
         val result = await(controller.findBounces(callBackRefrenece))
-        result shouldBe "sucess"
+        result shouldBe SUCCESS
       }
     }
   }

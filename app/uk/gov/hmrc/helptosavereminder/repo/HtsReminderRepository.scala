@@ -157,7 +157,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   }
 
-
   override def updateEmailBounceCount(nino: String): Future[Boolean] = {
 
     val selector = Json.obj("nino" -> nino)
