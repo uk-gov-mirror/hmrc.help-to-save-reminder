@@ -44,6 +44,7 @@ object ActorUtils {
   val START = "START"
   val STOP = "STOP"
   val SUCCESS = "SUCCESS"
+  val FAILURE = "FAILURE"
 }
 
 case class UpdateCallBackRef(reminder: Reminder, callBackRefUrl: String)

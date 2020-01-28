@@ -18,7 +18,7 @@ package uk.gov.hmrc.helptosavereminder.controllers
 
 import com.google.inject.Inject
 import play.api.{Configuration, Environment, Logger}
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
@@ -39,11 +39,14 @@ class EmailCallbackController @Inject()(
     repository.updateEmailBounceCount(nino).map {
       case true => {
         Logger.info("Updated the User email bounce count for " + nino)
+        Ok(SUCCESS)
       }
 
-      case _ => //Failure
+      case _ => {
+        Ok(FAILURE)
+      }
     }
-    Future.successful(Ok(SUCCESS))
+
   }
 
 }

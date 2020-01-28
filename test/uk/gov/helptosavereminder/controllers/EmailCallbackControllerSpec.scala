@@ -16,30 +16,46 @@
 
 package uk.gov.helptosavereminder.controllers
 
-
+import com.kenshoo.play.metrics.PlayModule
 import org.mockito.Matchers._
 import org.mockito.Mockito.when
 import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.MessagesControllerComponents
 import play.api.test.{FakeRequest, Helpers}
-import play.api.{Configuration, Environment, Mode}
+import play.api.{Application, Configuration, Environment, Mode}
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.controllers.EmailCallbackController
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
-import uk.gov.hmrc.http.HttpResponse
+import play.api.test._
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
-class EmailCallbackControllerSpec extends UnitSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockitoSugar {
+class EmailCallbackControllerSpec
+    extends UnitSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockitoSugar {
 
-  val fakeGetRequest = FakeRequest(Helpers.GET, "/bounce/100382SN123456B")
+  def additionalConfiguration: Map[String, String] =
+    Map(
+      "logger.application" -> "ERROR",
+      "logger.play"        -> "ERROR",
+      "logger.root"        -> "ERROR",
+      "org.apache.logging" -> "ERROR",
+      "com.codahale"       -> "ERROR")
+  private val bindModules: Seq[GuiceableModule] = Seq(new PlayModule)
+
+  implicit override lazy val app: Application = new GuiceApplicationBuilder()
+    .configure(additionalConfiguration)
+    .bindings(bindModules: _*)
+    .in(Mode.Test)
+    .build()
 
   private val env = Environment.simple()
   private val configuration = Configuration.load(env)
@@ -48,17 +64,22 @@ class EmailCallbackControllerSpec extends UnitSpec with Matchers with ScalaFutur
   private val appConfig = new AppConfig(configuration, serviceConfig)
   var runMode = mock[RunMode]
   lazy val mockRepository = mock[HtsReminderMongoRepository]
-  lazy val mcc: MessagesControllerComponents = fakeApplication.injector.instanceOf[MessagesControllerComponents]
+  lazy val mcc: MessagesControllerComponents = app.injector.instanceOf[MessagesControllerComponents]
 
   lazy val controller = new EmailCallbackController(env, configuration, serviceConfig, mcc, mockRepository)
 
   "The EmailCallbackController" should {
     "be able to increment a bounce count and" should {
       "respond with a 200 when all is good" in {
+
         val callBackRefrenece = "1580214107339YT176603C"
         when(mockRepository.updateEmailBounceCount(any())).thenReturn(Future.successful(true))
         val result = await(controller.findBounces(callBackRefrenece))
-        result shouldBe SUCCESS
+
+        result onComplete {
+          case Success(success) => success shouldBe SUCCESS
+          case _                =>
+        }
       }
     }
   }
