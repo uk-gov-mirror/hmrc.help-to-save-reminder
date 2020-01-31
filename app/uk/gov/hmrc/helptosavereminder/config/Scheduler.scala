@@ -51,6 +51,6 @@ class Scheduler @Inject()(
 
   //emailSenderActor ! "SEND-EMAIL"
 
-  reminderSupervisor ! START
+  reminderSupervisor ! BOOTSTRAP
 
 }

@@ -30,7 +30,7 @@ object ReminderGenerator {
   private lazy val generator = new Generator(rand)
 
   private def nino: Nino = generator.nextNino
-  private def email: Email = Email(s"${UUID.randomUUID()}@test.com")
+  private def email: Email = Email(s"mohan.dolla+${UUID.randomUUID()}@digital.hmrc.gov.uk")
   private def name: String = "Test Name"
   private def daysToReceive = Seq(1, 25)
   private def nextSendDate: LocalDate = LocalDate.parse("2020-01-01")
