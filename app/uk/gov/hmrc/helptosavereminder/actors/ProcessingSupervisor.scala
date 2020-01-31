@@ -55,7 +55,7 @@ class ProcessingSupervisor @Inject()(
 
     override def lockId: String = "emailProcessing"
 
-    override val forceLockReleaseAfter: org.joda.time.Duration = org.joda.time.Duration.standardMinutes(7)
+    override val forceLockReleaseAfter: org.joda.time.Duration = org.joda.time.Duration.standardMinutes(1)
 
     // $COVERAGE-OFF$
     override def tryLock[T](body: => Future[T])(implicit ec: ExecutionContext): Future[Option[T]] =
@@ -72,9 +72,11 @@ class ProcessingSupervisor @Inject()(
 
   val interval = 24 hours
 
-  val startTimes: Array[LocalTime] = config.get[String]("reminder-job.scheduleFor").split(',') map {
-    LocalTime.parse(_)
-  }
+  val startTimes: List[LocalTime] = {
+    config.get[String]("reminder-job.scheduleFor").split(',') map {
+      LocalTime.parse(_)
+    }
+  }.toList
 
   /*val uk.gov.hmrc.actors: Array[Cancellable] = startTimes map { time =>
     val delay = calculateInitialDelay(time)
@@ -86,14 +88,20 @@ class ProcessingSupervisor @Inject()(
     val now = LocalDateTime.now
     val target = LocalDateTime.of(LocalDate.now, time)
 
-    if (target.isBefore(now)) {
-      (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
-    } else {
+    if (target.isAfter(now)) {
+      Logger.debug(
+        "The FUTURE schedule is " + (target.toEpochSecond(ZoneOffset.UTC) - now
+          .toEpochSecond(ZoneOffset.UTC)).microseconds)
       (target.toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
+    } else {
+      Logger.debug(
+        "The PRESENT schedule is " + (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(
+          ZoneOffset.UTC)).microseconds)
+      (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
     }
   }
 
-  //private def
+  private def getNextDelayInMicros() = startTimes.map(x => calculateInitialDelay(x)).sorted.head.toSeconds
 
   override def receive: Receive = {
 
@@ -102,13 +110,18 @@ class ProcessingSupervisor @Inject()(
       lockrepo.releaseLock(lockKeeper.lockId, lockKeeper.serverId)
     }
 
-    case START => {
+    case BOOTSTRAP => {
 
-      //system.scheduler.schedule(120 seconds, interval, self, "START")
+      Logger.debug("[ProcessingSupervisor] BOOTSTRAP processing started.")
+
+      context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, START)
+
+    }
+
+    case START => {
 
       lockKeeper
         .tryLock {
-          //  Logger.debug("Starting Processing")
 
           repository.findHtsUsersToProcess().map {
             case Some(requests) if requests.nonEmpty => {
@@ -125,6 +138,7 @@ class ProcessingSupervisor @Inject()(
               Logger.debug(s"[ProcessingSupervisor][receive] no requests pending")
             }
           }
+
         }
         .map {
           case Some(thing) => {
@@ -132,9 +146,14 @@ class ProcessingSupervisor @Inject()(
             Logger.debug(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
 
           }
-          case _ => Logger.debug(s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock")
+          case _ => {
+            Logger.debug(
+              s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock. Scheduling for next available slot")
+            context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, "START")
+          }
 
         }
+      context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, "START")
 
     }
   }

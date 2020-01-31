@@ -41,6 +41,7 @@ object Reminder {
 }
 
 object ActorUtils {
+  val BOOTSTRAP = "BOOTSTRAP"
   val START = "START"
   val STOP = "STOP"
   val SUCCESS = "SUCCESS"
