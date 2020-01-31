@@ -73,7 +73,7 @@ class ProcessingSupervisor @Inject()(
   val interval = 24 hours
 
   val startTimes: List[LocalTime] = {
-    config.get[String]("reminder-job.scheduleFor").split(',') map {
+    config.get[String]("scheduleFor").split(',') map {
       LocalTime.parse(_)
     }
   }.toList
