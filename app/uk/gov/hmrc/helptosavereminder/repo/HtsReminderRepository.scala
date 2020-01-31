@@ -111,14 +111,10 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> LocalDate.now()))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
 
-    result onComplete {
-      case _ => //Success
-    }
-
     result
-      .map { lastError =>
-        Logger.debug(s"[HtsReminderMongoRepository][updateNextSendDate] updated:, result : $lastError ")
-        lastError.ok
+      .map { status =>
+        Logger.debug(s"[HtsReminderMongoRepository][updateNextSendDate] updated:, result : $status ")
+        status.ok
       }
       .recover {
         // $COVERAGE-OFF$
@@ -138,14 +134,10 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
 
-    result onComplete {
-      case _ => //Success
-    }
-
     result
-      .map { lastError =>
-        Logger.debug(s"[HtsReminderMongoRepository][updateCallBackRef] updated:, result : $lastError ")
-        lastError.ok
+      .map { status =>
+        Logger.debug(s"[HtsReminderMongoRepository][updateCallBackRef] updated:, result : $status ")
+        status.ok
       }
       .recover {
         // $COVERAGE-OFF$
@@ -164,14 +156,10 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
 
-    result onComplete {
-      case _ => //Success
-    }
-
     result
-      .map { lastError =>
-        Logger.debug(s"[HtsReminderMongoRepository][updateEmailBounceCount] incremented:, result : $lastError ")
-        lastError.ok
+      .map { status =>
+        Logger.debug(s"[HtsReminderMongoRepository][updateEmailBounceCount] incremented:, result : $status ")
+        status.ok
       }
       .recover {
         // $COVERAGE-OFF$

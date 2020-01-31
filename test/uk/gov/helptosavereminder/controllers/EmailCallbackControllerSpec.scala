@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package uk.gov.helptosavereminder.controllers
 import com.kenshoo.play.metrics.PlayModule
 import org.mockito.Matchers._
@@ -38,7 +39,7 @@ import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 class EmailCallbackControllerSpec
-  extends UnitSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockitoSugar {
+    extends UnitSpec with Matchers with ScalaFutures with GuiceOneAppPerSuite with MockitoSugar {
   def additionalConfiguration: Map[String, String] =
     Map(
       "logger.application" -> "ERROR",
