@@ -1,4 +1,5 @@
 # microservice specific routes
 
-GET        /hello-world                     uk.gov.hmrc.helptosavereminder.controllers.MicroserviceHelloWorldController.hello
-GET        /bouncedEmail/:callBackRefrenece       @uk.gov.hmrc.helptosavereminder.controllers.EmailCallbackController.findBounces(callBackRefrenece)
+GET        /hello-world                             uk.gov.hmrc.helptosavereminder.controllers.MicroserviceHelloWorldController.hello
+GET        /generateReminders/:n                    uk.gov.hmrc.helptosavereminder.controllers.ReminderGeneratorController.populateReminders(n : Int)
+GET        /bouncedEmail/:callBackRefrenece         uk.gov.hmrc.helptosavereminder.controllers.EmailCallbackController.findBounces(callBackRefrenece)

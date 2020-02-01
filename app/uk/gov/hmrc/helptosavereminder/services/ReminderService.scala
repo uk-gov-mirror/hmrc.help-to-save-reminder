@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.services
+package uk.gov.hmrc.helptosavereminder.services.test
 
-class ReminderService {}
+import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
+
+@Singleton
+class ReminderService @Inject()(htsReminderRepository: HtsReminderRepository) {
+
+  def generateAndInsertReminder =
+    htsReminderRepository.createReminder(ReminderGenerator.nextReminder)
+
+}
