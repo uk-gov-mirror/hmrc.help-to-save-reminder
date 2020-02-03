@@ -111,6 +111,8 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> LocalDate.now()))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
 
+    Logger.info("Entered the updateNextSendDate for user nino = " + nino)
+
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateNextSendDate] updated:, result : $status ")
