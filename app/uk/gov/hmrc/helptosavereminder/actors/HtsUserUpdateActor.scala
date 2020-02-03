@@ -45,13 +45,17 @@ class HtsUserUpdateActor(
   override def receive: Receive = {
     case reminder: Reminder => {
 
+      Logger.info("Entered the updateNextSendDate message handler for  " + reminder.nino.nino)
+
       repository.updateNextSendDate(reminder.nino.nino).map {
 
         case true => {
           Logger.info("Updated the User nextSendDate for " + reminder.nino)
         }
 
-        case _ => //Failure
+        case _ => {
+          Logger.info("Failed to update nextSendDate for the User " + reminder.nino)
+        }
       }
 
       //TODO: Update reminder in mongo to have a new next send date
