@@ -11,6 +11,6 @@
 
 # Add all the application routes to the prod.routes file
 
-->        /help-to-save-reminder/test-only/               test.Routes
+->        /help-to-save-reminder/test-only                test.Routes
 
 ->        /                                               prod.Routes
