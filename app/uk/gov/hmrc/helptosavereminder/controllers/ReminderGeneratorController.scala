@@ -21,7 +21,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.{Configuration, Environment}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.helptosavereminder.actors.ProcessingSupervisor
-import uk.gov.hmrc.helptosavereminder.services.test.{ReminderService, TestService}
+import uk.gov.hmrc.helptosavereminder.services.test.ReminderService
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.play.bootstrap.http.HttpClient

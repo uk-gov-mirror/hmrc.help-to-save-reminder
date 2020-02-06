@@ -18,13 +18,13 @@ package uk.gov.hmrc.helptosavereminder.controllers
 
 import com.google.inject.Inject
 import play.api.{Configuration, Environment, Logger}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class EmailCallbackController @Inject()(
   environment: Environment,

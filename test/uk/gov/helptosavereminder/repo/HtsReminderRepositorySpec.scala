@@ -16,18 +16,15 @@
 
 package uk.gov.helptosavereminder.repo
 
-import java.time.LocalDate
-
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.OneAppPerSuite
-import org.scalatestplus.play.guice.{GuiceOneAppPerSuite, GuiceOneServerPerSuite}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.commands.{DefaultWriteResult, WriteResult}
-import uk.gov.hmrc.helptosavereminder.models.Reminder
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.helptosavereminder.models.{HtsUser}
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
-import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository, HtsReminderRepository}
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoSpecSupport
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -56,7 +53,7 @@ class HtsReminderRepositorySpec
 
       val reminderValue = ReminderGenerator.nextReminder
 
-      val result: Future[Either[String, Reminder]] = htsReminderMongoRepository.createReminder(reminderValue)
+      val result: Future[Either[String, HtsUser]] = htsReminderMongoRepository.createReminder(reminderValue)
 
       await(result) match {
         case (Right(x)) => x.nino shouldBe reminderValue.nino
@@ -70,7 +67,7 @@ class HtsReminderRepositorySpec
 
       val reminderValue = ReminderGenerator.nextReminder
 
-      val usersToProcess: Future[Option[List[Reminder]]] = htsReminderMongoRepository.findHtsUsersToProcess()
+      val usersToProcess: Future[Option[List[HtsUser]]] = htsReminderMongoRepository.findHtsUsersToProcess()
 
       await(usersToProcess) match {
         case Some(x) => x.size shouldBe >=(1)
@@ -116,6 +113,22 @@ class HtsReminderRepositorySpec
         htsReminderMongoRepository.updateEmailBounceCount(reminderValue.nino.toString())
 
       await(nextSendDate) shouldBe true
+
+    }
+  }
+
+  "Calls to updateReminderUser on Hts Reminder repository" should {
+    "should successfully update the user " in {
+
+      val reminderValue = ReminderGenerator.nextReminder
+
+      val modifiedReminder =
+        reminderValue.copy(nino = Nino("RL256540A"), email = "raomohan2012@yahoo.com", optInStatus = false)
+
+      val updateStatus: Future[Boolean] =
+        htsReminderMongoRepository.updateReminderUser(modifiedReminder)
+
+      await(updateStatus) shouldBe true
 
     }
   }

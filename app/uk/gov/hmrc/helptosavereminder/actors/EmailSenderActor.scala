@@ -20,7 +20,7 @@ import akka.actor._
 import com.google.inject.Inject
 import javax.inject.Singleton
 import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, Reminder, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -48,7 +48,7 @@ class EmailSenderActor @Inject()(
 
   override def receive: Receive = {
 
-    case htsUserReminder: Reminder => {
+    case htsUserReminder: HtsUser => {
 
       val callBackRef = System.currentTimeMillis().toString + htsUserReminder.nino
       htsUserUpdateActor ! UpdateCallBackRef(htsUserReminder, callBackRef)
@@ -61,7 +61,7 @@ class EmailSenderActor @Inject()(
 
       val template =
         HtsReminderTemplate(
-          successReminder.reminder.email.value,
+          successReminder.reminder.email,
           successReminder.reminder.name,
           successReminder.reminder.callBackUrlRef)
 

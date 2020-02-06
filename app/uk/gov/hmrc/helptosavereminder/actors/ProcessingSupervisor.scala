@@ -89,12 +89,12 @@ class ProcessingSupervisor @Inject()(
     val target = LocalDateTime.of(LocalDate.now, time)
 
     if (target.isAfter(now)) {
-      Logger.debug(
+      Logger.info(
         "The FUTURE schedule is " + (target.toEpochSecond(ZoneOffset.UTC) - now
           .toEpochSecond(ZoneOffset.UTC)).microseconds)
       (target.toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
     } else {
-      Logger.debug(
+      Logger.info(
         "The PRESENT schedule is " + (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(
           ZoneOffset.UTC)).microseconds)
       (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
@@ -125,7 +125,7 @@ class ProcessingSupervisor @Inject()(
 
           repository.findHtsUsersToProcess().map {
             case Some(requests) if requests.nonEmpty => {
-              Logger.debug(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
+              Logger.info(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
 
               for (request <- requests) {
 
@@ -135,7 +135,7 @@ class ProcessingSupervisor @Inject()(
 
             }
             case _ => {
-              Logger.debug(s"[ProcessingSupervisor][receive] no requests pending")
+              Logger.info(s"[ProcessingSupervisor][receive] no requests pending")
             }
           }
 
@@ -143,11 +143,11 @@ class ProcessingSupervisor @Inject()(
         .map {
           case Some(thing) => {
 
-            Logger.debug(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
+            Logger.info(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
 
           }
           case _ => {
-            Logger.debug(
+            Logger.info(
               s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock. Scheduling for next available slot")
             context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, "START")
           }

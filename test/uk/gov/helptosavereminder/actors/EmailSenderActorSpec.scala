@@ -23,7 +23,7 @@ import org.mockito.ArgumentCaptor
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, Reminder, SendTemplatedEmailRequest}
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest}
 import play.api.{Application, Configuration, Environment, Mode}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
