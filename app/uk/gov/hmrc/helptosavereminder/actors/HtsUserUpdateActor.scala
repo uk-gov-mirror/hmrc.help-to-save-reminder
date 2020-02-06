@@ -19,7 +19,7 @@ package uk.gov.hmrc.helptosavereminder.actors
 import akka.actor._
 import javax.inject.{Inject, Singleton}
 import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.helptosavereminder.models.{Reminder, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsUser, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -43,7 +43,7 @@ class HtsUserUpdateActor(
     "emailSender-actor")
 
   override def receive: Receive = {
-    case reminder: Reminder => {
+    case reminder: HtsUser => {
 
       Logger.info("Entered the updateNextSendDate message handler for  " + reminder.nino.nino)
 

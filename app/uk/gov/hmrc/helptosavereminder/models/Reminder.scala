@@ -18,26 +18,38 @@ package uk.gov.hmrc.helptosavereminder.models
 
 import java.time.LocalDate
 
-import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.auth.core.retrieve.Email
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, JsPath, Json, Reads}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-case class Reminder(
+case class HtsUser(
   nino: Nino,
-  email: Email,
+  email: String,
   name: String,
-  optInStatus: Boolean,
-  daysToReceive: Seq[Int],
-  nextSendDate: LocalDate,
-  bounceCount: Int,
-  callBackUrlRef: String)
+  optInStatus: Boolean = false,
+  daysToReceive: Seq[Int] = Seq(),
+  nextSendDate: LocalDate = LocalDate.now(),
+  bounceCount: Int = 0,
+  callBackUrlRef: String = "")
 
-object Reminder {
-  implicit val emailFormat = Json.format[Email]
+object HtsUser {
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
   implicit val idFormat = ReactiveMongoFormats.objectIdFormats
-  implicit val reminderFormat: Format[Reminder] = Json.format[Reminder]
+  implicit val reminderFormat: Format[HtsUser] = Json.format[HtsUser]
+  implicit val writes = Json.writes[HtsUser]
+
+  implicit val reads: Reads[HtsUser] = (
+    (JsPath \ "nino").read[String].orElse((JsPath \ "nino").read[String]).map(Nino.apply(_)) and
+      (JsPath \ "email").read[String] and //.orElse((JsPath \ "nino").read[String]).map(Email.apply(_)) and
+      (JsPath \ "name").read[String] and
+      (JsPath \ "optInStatus").read[Boolean] and
+      (JsPath \ "daysToReceive").read[List[Int]] and
+      (JsPath \ "nextSendDate").read[LocalDate] and
+      (JsPath \ "bounceCount").read[Int] and
+      (JsPath \ "callBackUrlRef").read[String]
+  )(HtsUser.apply(_, _, _, _, _, _, _, _))
+
 }
 
 object ActorUtils {
@@ -48,6 +60,6 @@ object ActorUtils {
   val FAILURE = "FAILURE"
 }
 
-case class UpdateCallBackRef(reminder: Reminder, callBackRefUrl: String)
+case class UpdateCallBackRef(reminder: HtsUser, callBackRefUrl: String)
 
-case class UpdateCallBackSuccess(reminder: Reminder)
+case class UpdateCallBackSuccess(reminder: HtsUser)

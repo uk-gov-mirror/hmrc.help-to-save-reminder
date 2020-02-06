@@ -6,7 +6,7 @@ import sbt._
 object AppDependencies {
 
   val compile = Seq(
-    "org.reactivemongo" %% "play2-reactivemongo" % "0.17.1-play26",
+    "org.reactivemongo"       %% "play2-reactivemongo" % "0.17.1-play26",
     "uk.gov.hmrc"             %% "simple-reactivemongo"     % "7.21.0-play-26",
     "org.reactivemongo"       %% "reactivemongo-iteratees"  % "0.18.6",
     "uk.gov.hmrc"             %% "bootstrap-play-26"        % "1.3.0",
@@ -16,7 +16,7 @@ object AppDependencies {
 
 
   val test = Seq(
-    "org.reactivemongo" %% "play2-reactivemongo" % "0.17.1-play26",
+    "org.reactivemongo"       %% "play2-reactivemongo"      % "0.17.1-play26",
     "uk.gov.hmrc"             %% "bootstrap-play-26"        % "1.3.0"                 % Test classifier "tests",
     "uk.gov.hmrc"             %% "hmrctest"                 % "3.9.0-play-26",
     "uk.gov.hmrc"             %% "reactivemongo-test"       % "4.15.0-play-26",

@@ -21,14 +21,14 @@ import java.time.LocalDate
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import play.api.Logger
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.helptosavereminder.models.Reminder
+import uk.gov.hmrc.helptosavereminder.models.{HtsUser}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -40,25 +40,26 @@ import scala.util.{Failure, Success, Try}
 
 @ImplementedBy(classOf[HtsReminderMongoRepository])
 trait HtsReminderRepository {
-  def createReminder(reminder: Reminder): Future[Either[String, Reminder]]
-  def findHtsUsersToProcess(): Future[Option[List[Reminder]]]
+  def createReminder(reminder: HtsUser): Future[Either[String, HtsUser]]
+  def findHtsUsersToProcess(): Future[Option[List[HtsUser]]]
   def updateNextSendDate(nino: String): Future[Boolean]
   def updateEmailBounceCount(nino: String): Future[Boolean]
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
+  def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
 
 }
 
 class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
-    extends ReactiveRepository[Reminder, BSONObjectID](
+    extends ReactiveRepository[HtsUser, BSONObjectID](
       collectionName = "help-to-save-reminder",
       mongo = mongo.mongoConnector.db,
-      Reminder.reminderFormat,
+      HtsUser.reminderFormat,
       ReactiveMongoFormats.objectIdFormats
     ) with HtsReminderRepository {
 
   lazy val proxyCollection: GenericCollection[JSONSerializationPack.type] = collection
 
-  override def createReminder(reminder: Reminder): Future[Either[String, Reminder]] =
+  override def createReminder(reminder: HtsUser): Future[Either[String, HtsUser]] =
     insert(reminder)
       .map(result =>
         if (result.ok) {
@@ -71,17 +72,17 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
               .getOrElse("Unexpected error while creating Reminder"))
       })
 
-  override def findHtsUsersToProcess(): Future[Option[List[Reminder]]] = {
+  override def findHtsUsersToProcess(): Future[Option[List[HtsUser]]] = {
 
     val startTime = System.currentTimeMillis()
 
     val testResult = Try {
 
-      val usersToProcess: Future[List[Reminder]] = proxyCollection
+      val usersToProcess: Future[List[HtsUser]] = proxyCollection
         .find(Json.obj(), Option.empty[JsObject])
         .sort(Json.obj("nino" -> 1))
-        .cursor[Reminder](ReadPreference.primary)
-        .collect[List](-1, Cursor.FailOnError[List[Reminder]]())
+        .cursor[HtsUser](ReadPreference.primary)
+        .collect[List](-1, Cursor.FailOnError[List[HtsUser]]())
 
       usersToProcess onComplete {
         case _ => //Log the time
@@ -161,6 +162,32 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateEmailBounceCount] incremented:, result : $status ")
+        status.ok
+      }
+      .recover {
+        // $COVERAGE-OFF$
+        case e =>
+          Logger.error("Failed to update HtsUser", e)
+          false
+        // $COVERAGE-ON$
+      }
+
+  }
+
+  override def updateReminderUser(htsReminder: HtsUser): Future[Boolean] = {
+
+    val selector = Json.obj("nino" -> htsReminder.nino.nino)
+    val modifier = Json.obj(
+      "$set" -> Json.obj(
+        "optInStatus" -> JsBoolean(htsReminder.optInStatus),
+        "email"       -> htsReminder.email,
+        "bounceCount" -> htsReminder.bounceCount))
+
+    val result = proxyCollection.update(ordered = false).one(selector, modifier)
+
+    result
+      .map { status =>
+        Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] updated:, result : $status ")
         status.ok
       }
       .recover {

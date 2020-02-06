@@ -19,10 +19,6 @@ package uk.gov.helptosavereminder.actors
 import akka.actor.{ActorSystem, Props}
 import akka.testkit._
 import com.kenshoo.play.metrics.PlayModule
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.{Application, Configuration, Mode}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
