@@ -26,9 +26,8 @@ import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 
 import scala.concurrent.ExecutionContext
 
-class EmailCallbackController @Inject()(
-  val cc: MessagesControllerComponents,
-  repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext)
+class EmailCallbackController @Inject()(val cc: MessagesControllerComponents, repository: HtsReminderMongoRepository)(
+  implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   def findBounces(callBackRefrenec: String) = Action.async { implicit request =>
