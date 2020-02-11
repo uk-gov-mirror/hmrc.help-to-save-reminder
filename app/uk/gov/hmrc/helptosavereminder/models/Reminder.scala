@@ -26,7 +26,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 case class HtsUser(
   nino: Nino,
   email: String,
-  name: String,
+  name: String = "",
   optInStatus: Boolean = false,
   daysToReceive: Seq[Int] = Seq(),
   nextSendDate: LocalDate = LocalDate.now(),

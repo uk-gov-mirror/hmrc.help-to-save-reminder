@@ -46,7 +46,7 @@ class HtsUserUpdateController @Inject()(
         (hstUser: HtsUser) => {
           Logger.info(s"The HtsUser received from frontend to update is : " + hstUser)
           repository.updateReminderUser(hstUser).map {
-            case true  => Ok
+            case true  => Ok("SUCCESS")
             case false => NotModified
           }
         }
