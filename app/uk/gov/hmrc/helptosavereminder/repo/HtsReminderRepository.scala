@@ -189,7 +189,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] updated:, result : $status ")
-        if (status.nModified == 0) {
+        if (status.n == 0) {
           createReminder(htsReminder)
           Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] new user created: $status ")
         } else {
