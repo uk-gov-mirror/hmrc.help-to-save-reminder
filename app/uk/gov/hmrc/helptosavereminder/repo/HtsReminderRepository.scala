@@ -181,6 +181,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       "$set" -> Json.obj(
         "optInStatus"   -> JsBoolean(htsReminder.optInStatus),
         "email"         -> htsReminder.email,
+        "name"          -> htsReminder.name,
         "daysToReceive" -> htsReminder.daysToReceive))
 
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
