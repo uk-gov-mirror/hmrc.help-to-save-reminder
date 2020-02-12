@@ -19,7 +19,7 @@ package uk.gov.hmrc.helptosavereminder.models
 import java.time.LocalDate
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads}
+import play.api.libs.json.{Format, JsPath, JsString, Json, Reads, Writes}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -36,12 +36,12 @@ case class HtsUser(
 object HtsUser {
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
   implicit val idFormat = ReactiveMongoFormats.objectIdFormats
-  implicit val reminderFormat: Format[HtsUser] = Json.format[HtsUser]
-  implicit val writes = Json.writes[HtsUser]
+  implicit val htsUserFormat: Format[HtsUser] = Json.format[HtsUser]
+  implicit val writes: Writes[HtsUser] = Writes[HtsUser](s ⇒ JsString(s.toString))
 
   implicit val reads: Reads[HtsUser] = (
     (JsPath \ "nino").read[String].orElse((JsPath \ "nino").read[String]).map(Nino.apply(_)) and
-      (JsPath \ "email").read[String] and //.orElse((JsPath \ "nino").read[String]).map(Email.apply(_)) and
+      (JsPath \ "email").read[String] and
       (JsPath \ "name").read[String] and
       (JsPath \ "optInStatus").read[Boolean] and
       (JsPath \ "daysToReceive").read[List[Int]] and

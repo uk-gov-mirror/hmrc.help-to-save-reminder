@@ -21,7 +21,6 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.helptosavereminder.auth.HtsReminderAuth
-import uk.gov.hmrc.helptosavereminder.controllers.HelpToSaveReminderController.GetHtsUserResponse
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.helptosavereminder.models.HtsUser
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
@@ -44,24 +43,14 @@ class HtsUserUpdateController @Inject()(
           Logger.error(s"Unable to de-serialise request as a HtsUser: ${error.mkString}")
           Future.successful(BadRequest)
         },
-        (hstUser: HtsUser) => {
-          Logger.info(s"The HtsUser received from frontend to update is : " + hstUser)
-          repository.updateReminderUser(hstUser).map {
-            case true  => Ok(Json.toJson(GetHtsUserResponse("SUCCESS")))
+        (htsUser: HtsUser) => {
+          Logger.info(s"The HtsUser received from frontend to update is : " + htsUser)
+          repository.updateReminderUser(htsUser).map {
+            case true  => Ok(Json.toJson(htsUser))
             case false => NotModified
           }
         }
       )
-  }
-
-}
-
-object HelpToSaveReminderController {
-
-  private[controllers] case class GetHtsUserResponse(updateStatus: String)
-
-  private[controllers] object GetHtsUserResponse {
-    implicit val format: Format[GetHtsUserResponse] = Json.format[GetHtsUserResponse]
   }
 
 }

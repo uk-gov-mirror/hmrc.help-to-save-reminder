@@ -53,7 +53,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     extends ReactiveRepository[HtsUser, BSONObjectID](
       collectionName = "help-to-save-reminder",
       mongo = mongo.mongoConnector.db,
-      HtsUser.reminderFormat,
+      HtsUser.htsUserFormat,
       ReactiveMongoFormats.objectIdFormats
     ) with HtsReminderRepository {
 
