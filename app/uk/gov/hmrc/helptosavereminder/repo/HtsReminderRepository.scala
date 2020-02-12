@@ -53,7 +53,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     extends ReactiveRepository[HtsUser, BSONObjectID](
       collectionName = "help-to-save-reminder",
       mongo = mongo.mongoConnector.db,
-      HtsUser.reminderFormat,
+      HtsUser.htsUserFormat,
       ReactiveMongoFormats.objectIdFormats
     ) with HtsReminderRepository {
 
@@ -179,15 +179,22 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val selector = Json.obj("nino" -> htsReminder.nino.nino)
     val modifier = Json.obj(
       "$set" -> Json.obj(
-        "optInStatus" -> JsBoolean(htsReminder.optInStatus),
-        "email"       -> htsReminder.email,
-        "bounceCount" -> htsReminder.bounceCount))
+        "optInStatus"   -> JsBoolean(htsReminder.optInStatus),
+        "email"         -> htsReminder.email,
+        "name"          -> htsReminder.name,
+        "daysToReceive" -> htsReminder.daysToReceive))
 
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
 
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] updated:, result : $status ")
+        if (status.n == 0) {
+          createReminder(htsReminder)
+          Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] new user created: $status ")
+        } else {
+          Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] updated:, result : $status ")
+        }
         status.ok
       }
       .recover {

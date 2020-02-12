@@ -29,11 +29,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class HtsUserUpdateController @Inject()(repository: HtsReminderMongoRepository, cc: ControllerComponents)(
-  implicit val ec: ExecutionContext)
+class HtsUserUpdateController @Inject()(
+  htsReminderAuth: HtsReminderAuth,
+  repository: HtsReminderMongoRepository,
+  cc: ControllerComponents)(implicit val ec: ExecutionContext)
     extends BackendController(cc) {
 
-  def update(): Action[AnyContent] = Action.async { implicit request =>
+  def update(): Action[AnyContent] = htsReminderAuth.ggAuthorisedWithNino { implicit request => implicit nino ⇒
     request.body.asJson.get
       .validate[HtsUser]
       .fold(
@@ -41,10 +43,12 @@ class HtsUserUpdateController @Inject()(repository: HtsReminderMongoRepository, 
           Logger.error(s"Unable to de-serialise request as a HtsUser: ${error.mkString}")
           Future.successful(BadRequest)
         },
-        (data: HtsUser) =>
-          repository.updateReminderUser(data).map {
-            case true  => Ok
+        (htsUser: HtsUser) => {
+          Logger.info(s"The HtsUser received from frontend to update is : " + htsUser)
+          repository.updateReminderUser(htsUser).map {
+            case true  => Ok(Json.toJson(htsUser))
             case false => NotModified
+          }
         }
       )
   }

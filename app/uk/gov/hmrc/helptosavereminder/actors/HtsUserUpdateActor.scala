@@ -67,7 +67,6 @@ class HtsUserUpdateActor(
 
         case true => {
           Logger.info("Updated the User callBackRef for " + updateReminder.reminder.nino.nino)
-          Logger.info("Type of sender actor is " + origSender.getClass)
           origSender ! UpdateCallBackSuccess(updateReminder.reminder)
         }
 

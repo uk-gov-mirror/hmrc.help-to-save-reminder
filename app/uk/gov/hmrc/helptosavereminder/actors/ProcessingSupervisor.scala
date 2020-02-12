@@ -91,12 +91,12 @@ class ProcessingSupervisor @Inject()(
     if (target.isAfter(now)) {
       Logger.info(
         "The FUTURE schedule is " + (target.toEpochSecond(ZoneOffset.UTC) - now
-          .toEpochSecond(ZoneOffset.UTC)).microseconds)
+          .toEpochSecond(ZoneOffset.UTC)).seconds)
       (target.toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
     } else {
       Logger.info(
         "The PRESENT schedule is " + (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(
-          ZoneOffset.UTC)).microseconds)
+          ZoneOffset.UTC)).seconds)
       (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
     }
   }
@@ -112,7 +112,7 @@ class ProcessingSupervisor @Inject()(
 
     case BOOTSTRAP => {
 
-      Logger.debug("[ProcessingSupervisor] BOOTSTRAP processing started.")
+      Logger.info("[ProcessingSupervisor] BOOTSTRAP processing started.")
 
       context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, START)
 
@@ -149,11 +149,11 @@ class ProcessingSupervisor @Inject()(
           case _ => {
             Logger.info(
               s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock. Scheduling for next available slot")
-            context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, "START")
+            context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, START)
           }
 
         }
-      context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, "START")
+      context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, START)
 
     }
   }

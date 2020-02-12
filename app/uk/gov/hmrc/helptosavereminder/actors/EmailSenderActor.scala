@@ -80,8 +80,6 @@ class EmailSenderActor @Inject()(
 
     val callBackUrl = s"${servicesConfig.baseUrl("help-to-save-reminder")}/hmrc/bouncedEmail/" + template.callBackUrlRef
 
-    println("THE BOUNCEBACK URL IS :  " + callBackUrl)
-
     val request = SendTemplatedEmailRequest(
       List(template.email),
       sendEmailTemplateId,
@@ -94,8 +92,6 @@ class EmailSenderActor @Inject()(
   private def sendEmail(request: SendTemplatedEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] = {
 
     val url = s"${servicesConfig.baseUrl("email")}/hmrc/email"
-
-    println("THE URL for sending email TO :  " + url)
 
     http.POST(url, request, Seq(("Content-Type", "application/json"))) map { response =>
       response.status match {
