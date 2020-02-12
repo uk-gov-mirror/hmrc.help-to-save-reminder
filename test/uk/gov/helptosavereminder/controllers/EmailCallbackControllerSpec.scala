@@ -60,7 +60,7 @@ class EmailCallbackControllerSpec
   var runMode = mock[RunMode]
   lazy val mockRepository = mock[HtsReminderMongoRepository]
   lazy val mcc: MessagesControllerComponents = app.injector.instanceOf[MessagesControllerComponents]
-  lazy val controller = new EmailCallbackController(env, configuration, serviceConfig, mcc, mockRepository)
+  lazy val controller = new EmailCallbackController(mcc, mockRepository)
   "The EmailCallbackController" should {
     "be able to increment a bounce count and" should {
       "respond with a 200 when all is good" in {
