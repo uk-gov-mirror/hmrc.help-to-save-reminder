@@ -28,11 +28,12 @@ import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.helptosavereminder.models.{HtsUser}
+import uk.gov.hmrc.helptosavereminder.models.HtsUser
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.JSONSerializationPack
+import uk.gov.hmrc.domain.Nino
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -46,6 +47,7 @@ trait HtsReminderRepository {
   def updateEmailBounceCount(nino: String): Future[Boolean]
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
   def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
+  def findByNino(nino: String): Future[Option[HtsUser]]
 
 }
 
@@ -205,6 +207,29 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         // $COVERAGE-ON$
       }
 
+  }
+
+  override def findByNino(nino: String): Future[Option[HtsUser]] = {
+
+    val tryResult = Try {
+      proxyCollection
+        .find(Json.obj("nino" -> nino), Option.empty[JsObject])
+        .cursor[HtsUser](ReadPreference.primary)
+        .collect[List](maxDocs = 1, err = Cursor.FailOnError[List[HtsUser]]())
+    }
+
+    tryResult match {
+      case Success(s) => {
+        s.map { x =>
+          Logger.debug(s"[HtsReminderMongoRepository][findByNino] : { request : $nino, result: $x }")
+          x.headOption
+        }
+      }
+      case Failure(f) => {
+        Logger.debug(s"[HtsReminderMongoRepository][findByNino] : { request : $nino, exception: ${f.getMessage} }")
+        Future.successful(None)
+      }
+    }
   }
 
   override def indexes: Seq[Index] = Seq(

@@ -53,4 +53,16 @@ class HtsUserUpdateController @Inject()(
       )
   }
 
+  def getIfHtsUserExists(nino: String) = Action.async { implicit request =>
+    repository.findByNino(nino).map {
+      case Some(htsUser) => {
+        Ok(Json.toJson(htsUser))
+      }
+
+      case None => {
+        NotFound
+      }
+    }
+  }
+
 }

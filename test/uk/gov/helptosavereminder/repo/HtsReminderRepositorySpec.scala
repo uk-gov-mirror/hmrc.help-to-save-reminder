@@ -132,4 +132,15 @@ class HtsReminderRepositorySpec
 
     }
   }
+
+  "Calls to --- on Hts Reminder repository" should {
+    "should successfully find the user " in {
+
+      val htsUserOption: Option[HtsUser] =
+        htsReminderMongoRepository.findByNino("YP798383A")
+
+      await(htsUserOption).get.nino.nino shouldBe "YP798383D"
+
+    }
+  }
 }
