@@ -63,3 +63,16 @@ object ActorUtils {
 case class UpdateCallBackRef(reminder: HtsUser, callBackRefUrl: String)
 
 case class UpdateCallBackSuccess(reminder: HtsUser)
+
+case class CancelHtsUserReminder(nino: String)
+
+object CancelHtsUserReminder {
+
+  implicit val htsUserCancelFormat: Format[CancelHtsUserReminder] = Json.format[CancelHtsUserReminder]
+
+  implicit val writes: Writes[CancelHtsUserReminder] = Writes[CancelHtsUserReminder](s ⇒ JsString(s.toString))
+
+  implicit val reads: Reads[CancelHtsUserReminder] = (
+    (JsPath \ "nino").read[String].orElse((JsPath \ "nino").read[String]).map(CancelHtsUserReminder.apply(_))
+  )
+}

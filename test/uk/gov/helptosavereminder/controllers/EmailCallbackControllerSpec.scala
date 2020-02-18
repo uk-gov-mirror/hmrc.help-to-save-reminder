@@ -47,12 +47,15 @@ class EmailCallbackControllerSpec
       "logger.root"        -> "ERROR",
       "org.apache.logging" -> "ERROR",
       "com.codahale"       -> "ERROR")
+
   private val bindModules: Seq[GuiceableModule] = Seq(new PlayModule)
+
   implicit override lazy val app: Application = new GuiceApplicationBuilder()
     .configure(additionalConfiguration)
     .bindings(bindModules: _*)
     .in(Mode.Test)
     .build()
+
   private val env = Environment.simple()
   private val configuration = Configuration.load(env)
   val fakeRequest = FakeRequest()
@@ -61,6 +64,7 @@ class EmailCallbackControllerSpec
   lazy val mockRepository = mock[HtsReminderMongoRepository]
   lazy val mcc: MessagesControllerComponents = app.injector.instanceOf[MessagesControllerComponents]
   lazy val controller = new EmailCallbackController(mcc, mockRepository)
+
   "The EmailCallbackController" should {
     "be able to increment a bounce count and" should {
       "respond with a 200 when all is good" in {

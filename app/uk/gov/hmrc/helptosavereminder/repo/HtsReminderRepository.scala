@@ -18,10 +18,11 @@ package uk.gov.hmrc.helptosavereminder.repo
 
 import java.time.LocalDate
 
+import cats.data.EitherT
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import play.api.Logger
-import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
+import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
 import reactivemongo.api.commands.WriteResult
@@ -33,10 +34,10 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.JSONSerializationPack
-import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.helptosave.util.NINO
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 @ImplementedBy(classOf[HtsReminderMongoRepository])
@@ -48,6 +49,7 @@ trait HtsReminderRepository {
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
   def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
   def findByNino(nino: String): Future[Option[HtsUser]]
+  def deleteHtsUser(nino: String): Future[Either[String, Unit]]
 
 }
 
@@ -208,6 +210,20 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       }
 
   }
+
+  override def deleteHtsUser(nino: String): Future[Either[String, Unit]] =
+    remove("nino" → Json.obj("$regex" → JsString(nino)))
+      .map[Either[String, Unit]] { res ⇒
+        if (res.writeErrors.nonEmpty) {
+          Left(s"Could not delete htsUser: ${res.writeErrors.mkString(";")}")
+        } else {
+          Right(())
+        }
+      }
+      .recover {
+        case e ⇒
+          Left(s"Could not delete htsUser: ${e.getMessage}")
+      }
 
   override def findByNino(nino: String): Future[Option[HtsUser]] = {
 

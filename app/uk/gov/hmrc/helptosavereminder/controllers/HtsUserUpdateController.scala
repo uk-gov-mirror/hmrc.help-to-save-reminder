@@ -22,7 +22,7 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.helptosavereminder.auth.HtsReminderAuth
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.helptosavereminder.models.HtsUser
+import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUser}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -63,6 +63,24 @@ class HtsUserUpdateController @Inject()(
         NotFound
       }
     }
+  }
+
+  def deleteHtsUser(): Action[AnyContent] = htsReminderAuth.ggAuthorisedWithNino { implicit request => implicit nino ⇒
+    request.body.asJson.get
+      .validate[CancelHtsUserReminder]
+      .fold(
+        error => {
+          Logger.error(s"Unable to de-serialise request as a CancelHtsUserReminder: ${error.mkString}")
+          Future.successful(BadRequest)
+        },
+        (userReminder: CancelHtsUserReminder) => {
+          Logger.info(s"The HtsUser received from frontend to delete is : " + userReminder)
+          repository.deleteHtsUser(userReminder.nino).map {
+            case Left(error) => NotModified
+            case Right(())   => Ok
+          }
+        }
+      )
   }
 
 }

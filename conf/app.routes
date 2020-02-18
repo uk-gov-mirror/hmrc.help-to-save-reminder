@@ -8,7 +8,8 @@ GET        /bootstrap-batchprocess                  uk.gov.hmrc.helptosaveremind
 
 GET        /bouncedEmail/:callbackreference         uk.gov.hmrc.helptosavereminder.controllers.EmailCallbackController.findBounces(callbackreference)
 
-GET        /getIfHtsUserExists/:nino                uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController.getIfHtsUserExists(nino : String)
+GET        /getifhtsuserexists/:nino                uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController.getIfHtsUserExists(nino : String)
 
 POST       /update-htsuser-entity                   uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController.update
 
+POST       /delete-htsuser-entity                   uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController.deleteHtsUser
