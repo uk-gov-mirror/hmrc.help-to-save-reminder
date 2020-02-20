@@ -21,21 +21,20 @@ import java.time.LocalDate
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import play.api.Logger
-import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
+import play.api.libs.json.{JsBoolean, JsObject, JsString, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
-import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.helptosavereminder.models.{HtsUser}
+import uk.gov.hmrc.helptosavereminder.models.HtsUser
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.JSONSerializationPack
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 @ImplementedBy(classOf[HtsReminderMongoRepository])
@@ -46,6 +45,8 @@ trait HtsReminderRepository {
   def updateEmailBounceCount(nino: String): Future[Boolean]
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
   def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
+  def findByNino(nino: String): Future[Option[HtsUser]]
+  def deleteHtsUser(nino: String): Future[Either[String, Unit]]
 
 }
 
@@ -65,11 +66,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         if (result.ok) {
           Right(reminder)
         } else {
-          Left(
-            WriteResult
-              .lastError(result)
-              .flatMap(lastError => lastError.errmsg.map(identity))
-              .getOrElse("Unexpected error while creating Reminder"))
+          Left("Unexpected error while creating Reminder ")
       })
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUser]]] = {
@@ -97,8 +94,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       }
 
       case Failure(f) => {
-        Logger.error(s"[HtsReminderMongoRepository][findHtsUsersToProcess] failed: ${f.getMessage}")
-        //metrics.findRequestsToProcessTimer(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
         Future.successful(None)
       }
     }
@@ -205,6 +200,41 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         // $COVERAGE-ON$
       }
 
+  }
+
+  override def deleteHtsUser(nino: String): Future[Either[String, Unit]] =
+    remove("nino" → Json.obj("$regex" → JsString(nino)))
+      .map[Either[String, Unit]] { res ⇒
+        if (res.writeErrors.nonEmpty) {
+          Left(s"Could not delete htsUser: ${res.writeErrors.mkString(";")}")
+        } else {
+          Right(())
+        }
+      }
+      .recover {
+        case e ⇒
+          Left(s"Could not delete htsUser: ${e.getMessage}")
+      }
+
+  override def findByNino(nino: String): Future[Option[HtsUser]] = {
+
+    val tryResult = Try {
+      proxyCollection
+        .find(Json.obj("nino" -> nino), Option.empty[JsObject])
+        .cursor[HtsUser](ReadPreference.primary)
+        .collect[List](maxDocs = 1, err = Cursor.FailOnError[List[HtsUser]]())
+    }
+
+    tryResult match {
+      case Success(s) => {
+        s.map { x =>
+          x.headOption
+        }
+      }
+      case Failure(f) => {
+        Future.successful(None)
+      }
+    }
   }
 
   override def indexes: Seq[Index] = Seq(

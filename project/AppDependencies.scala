@@ -25,12 +25,13 @@ object AppDependencies {
     "org.mockito"             %  "mockito-all"              % "1.9.5",
     "uk.gov.hmrc"             %% "domain"                   % "5.6.0-play-26",
     "org.reactivemongo"       %% "reactivemongo-iteratees"  % "0.18.6",
-    "org.scalatest"           %% "scalatest"                % "3.0.8"                 % "test",
     "com.typesafe.akka"       %% "akka-testkit"             % "2.3.16",
     "uk.gov.hmrc"             %% "domain"                   % "5.6.0-play-26",
     "com.typesafe.play"       %% "play-test"                % current                 % "test",
     "org.pegdown"             %  "pegdown"                  % "1.6.0"                 % "test, it",
-    "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.2"                 % "test, it"
+    "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.2"                 % "test, it",
+    "org.scalatest"           %% "scalatest"                % "3.0.8"                 % "test, it",
+    "org.scalamock"           %% "scalamock"                % "4.4.0"                 % "test, it"
   )
 
 }

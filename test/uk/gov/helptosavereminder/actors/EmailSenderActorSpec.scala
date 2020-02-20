@@ -23,7 +23,7 @@ import org.mockito.ArgumentCaptor
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest}
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackSuccess}
 import play.api.{Application, Configuration, Environment, Mode}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -120,6 +120,8 @@ class EmailSenderActorSpec
       within(5 seconds) {
 
         emailSenderActor ! mockObject
+
+        emailSenderActor ! UpdateCallBackSuccess(mockObject)
         //htsUserUpdateActorProbe.expectMsg(mockObject)
 
       }

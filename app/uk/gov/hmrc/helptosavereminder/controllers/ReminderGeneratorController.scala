@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helptosavereminder.controllers
+/*package uk.gov.hmrc.helptosavereminder.controllers
 
 import akka.actor.{ActorSystem, Props}
 import javax.inject.{Inject, Singleton}
@@ -61,3 +61,4 @@ class ReminderGeneratorController @Inject()(
   }
 
 }
+ */
