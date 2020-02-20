@@ -78,4 +78,15 @@ class EmailCallbackControllerSpec
       }
     }
   }
+
+  "respond with a 200 containing FAILURE string if Nino does not exists or update fails" in {
+    val callBackRefrenece = "1580214107339YT176603C"
+    when(mockRepository.updateEmailBounceCount(any())).thenReturn(Future.successful(false))
+    val result = controller.findBounces(callBackRefrenece).apply(fakeRequest)
+    result.onComplete({
+      case Success(success) => contentAsString(success) shouldBe FAILURE
+      case _                =>
+    })
+  }
+
 }

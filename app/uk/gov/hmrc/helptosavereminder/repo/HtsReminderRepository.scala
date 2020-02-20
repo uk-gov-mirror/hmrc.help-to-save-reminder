@@ -18,14 +18,12 @@ package uk.gov.hmrc.helptosavereminder.repo
 
 import java.time.LocalDate
 
-import cats.data.EitherT
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import play.api.Logger
-import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{JsBoolean, JsObject, JsString, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
-import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson.BSONObjectID
@@ -34,7 +32,6 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.JSONSerializationPack
-import uk.gov.hmrc.helptosave.util.NINO
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -69,11 +66,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         if (result.ok) {
           Right(reminder)
         } else {
-          Left(
-            WriteResult
-              .lastError(result)
-              .flatMap(lastError => lastError.errmsg.map(identity))
-              .getOrElse("Unexpected error while creating Reminder"))
+          Left("Unexpected error while creating Reminder ")
       })
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUser]]] = {
@@ -101,8 +94,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       }
 
       case Failure(f) => {
-        Logger.error(s"[HtsReminderMongoRepository][findHtsUsersToProcess] failed: ${f.getMessage}")
-        //metrics.findRequestsToProcessTimer(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
         Future.successful(None)
       }
     }
@@ -237,12 +228,10 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     tryResult match {
       case Success(s) => {
         s.map { x =>
-          Logger.debug(s"[HtsReminderMongoRepository][findByNino] : { request : $nino, result: $x }")
           x.headOption
         }
       }
       case Failure(f) => {
-        Logger.debug(s"[HtsReminderMongoRepository][findByNino] : { request : $nino, exception: ${f.getMessage} }")
         Future.successful(None)
       }
     }

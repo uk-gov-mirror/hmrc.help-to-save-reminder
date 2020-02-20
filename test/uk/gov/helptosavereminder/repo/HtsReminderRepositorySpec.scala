@@ -22,7 +22,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.helptosavereminder.models.{HtsUser}
+import uk.gov.hmrc.helptosavereminder.models.HtsUser
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -31,6 +31,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class HtsReminderRepositorySpec
     extends UnitSpec with MockitoSugar with MongoSpecSupport with GuiceOneAppPerSuite with BeforeAndAfterAll {
@@ -133,13 +134,33 @@ class HtsReminderRepositorySpec
     }
   }
 
-  "Calls to --- on Hts Reminder repository" should {
+  "Calls to findByNino on Hts Reminder repository" should {
     "should successfully find the user " in {
 
-      val htsUserOption: Option[HtsUser] =
-        htsReminderMongoRepository.findByNino("YP798383A")
+      val reminderValue = ReminderGenerator.nextReminder
 
-      await(htsUserOption).get.nino.nino shouldBe "YP798383D"
+      val result: Future[Either[String, HtsUser]] =
+        htsReminderMongoRepository.createReminder(reminderValue.copy(nino = Nino("SK798383D")))
+
+      result onComplete ({
+        case Success(x) => {
+          val htsUserOption: Option[HtsUser] =
+            htsReminderMongoRepository.findByNino("SK798383D")
+
+          await(htsUserOption).get.nino.nino shouldBe "SK798383D"
+        }
+      })
+
+    }
+  }
+
+  "Calls to deleteHtsUser on Hts Reminder repository" should {
+    "should successfully delete the user " in {
+
+      val result =
+        htsReminderMongoRepository.deleteHtsUser("YP798383D")
+
+      await(result) shouldBe Right(())
 
     }
   }

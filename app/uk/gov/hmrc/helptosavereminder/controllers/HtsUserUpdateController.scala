@@ -20,22 +20,22 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.helptosavereminder.auth.HtsReminderAuth
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth
 import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUser}
-import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
+import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository, HtsReminderRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class HtsUserUpdateController @Inject()(
-  htsReminderAuth: HtsReminderAuth,
-  repository: HtsReminderMongoRepository,
-  cc: ControllerComponents)(implicit val ec: ExecutionContext)
-    extends BackendController(cc) {
+  repository: HtsReminderRepository,
+  cc: ControllerComponents,
+  override val authConnector: AuthConnector)(implicit val ec: ExecutionContext)
+    extends HtsReminderAuth(authConnector, cc) {
 
-  def update(): Action[AnyContent] = htsReminderAuth.ggAuthorisedWithNino { implicit request => implicit nino ⇒
+  def update(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
     request.body.asJson.get
       .validate[HtsUser]
       .fold(
@@ -65,7 +65,7 @@ class HtsUserUpdateController @Inject()(
     }
   }
 
-  def deleteHtsUser(): Action[AnyContent] = htsReminderAuth.ggAuthorisedWithNino { implicit request => implicit nino ⇒
+  def deleteHtsUser(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
     request.body.asJson.get
       .validate[CancelHtsUserReminder]
       .fold(
