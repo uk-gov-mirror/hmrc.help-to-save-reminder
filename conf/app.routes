@@ -13,3 +13,5 @@ GET        /getifhtsuserexists/:nino                uk.gov.hmrc.helptosaveremind
 POST       /update-htsuser-entity                   uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController.update
 
 POST       /delete-htsuser-entity                   uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController.deleteHtsUser
+
+POST       /update-htsuser-email                    uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController.updateEmail

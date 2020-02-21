@@ -41,13 +41,15 @@ import uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import play.api.test._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUser}
+import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUser, UpdateEmail}
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.play.bootstrap.config.RunMode
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{nino => v2Nino}
 import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth._
+
+import scala.util.{Failure, Success}
 
 class HtsUserUpdateControllerSpec extends AuthSupport {
   def additionalConfiguration: Map[String, String] =
@@ -80,6 +82,12 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
     (mockRepository
       .findByNino(_: String))
       .expects(nino)
+      .returning(result)
+
+  def mockUpdateEmailRepository(nino: String, email: String)(result: Boolean): Unit =
+    (mockRepository
+      .updateEmail(_: String, _: String))
+      .expects(nino, email)
       .returning(result)
 
   val fakeRequest = FakeRequest()
@@ -167,7 +175,16 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
 
     "be able to successfully delete an HtsUser" in {
 
-      val cancelHtsUser = CancelHtsUserReminder("AE123456C")
+      val cancelHtsUser = CancelHtsUserReminder.apply("AE123456C")
+
+      val jsonRequest = Json.toJson(cancelHtsUser)
+      //val convertedObject: CancelHtsUserReminder = Json.fromJson(jsonRequest).get
+      //val convertedNino = convertedObject.nino
+      val tumri = Json.parse(Json.stringify(jsonRequest)).validate[CancelHtsUserReminder] onComplete ({
+        case Success(value) => value.get.nino
+        case Failure(value) =>
+      })
+
       val fakeRequest = FakeRequest("POST", "/")
 
       val controller = new HtsUserUpdateController(mockRepository, mcc, mockAuthConnector)
@@ -229,6 +246,70 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
 
       val result = controller.getIfHtsUserExists("AE123456C")(fakeRequest)
       status(result) shouldBe 404
+
+    }
+
+    "be able to return a success if Hts users details for email change are correct" in {
+
+      val htsReminderUser = (ReminderGenerator.nextReminder).copy(nino = Nino("AE123456D"))
+      val updateEmailInput = UpdateEmail(htsReminderUser.nino, htsReminderUser.email)
+      val fakeRequest = FakeRequest("POST", "/")
+
+      implicit val request: Request[JsValue] =
+        FakeRequest("POST", "/update-htsuser-email").withBody(Json.toJson(updateEmailInput))
+
+      val controller = new HtsUserUpdateController(mockRepository, mcc, mockAuthConnector)
+
+      inSequence {
+        mockAuth(AuthWithCL200, v2Nino)(Right(mockedNinoRetrieval))
+        mockUpdateEmailRepository(updateEmailInput.nino.nino, updateEmailInput.email)(true)
+
+      }
+
+      val result = controller.updateEmail()(fakeRequest.withJsonBody(Json.toJson(htsReminderUser)))
+      status(result) shouldBe 200
+
+    }
+
+    "be able to return a success with Not Found if Hts users details for email change are correct" in {
+
+      val htsReminderUser = (ReminderGenerator.nextReminder).copy(nino = Nino("AE123456D"))
+      val updateEmailInput = UpdateEmail(htsReminderUser.nino, htsReminderUser.email)
+      val fakeRequest = FakeRequest("POST", "/")
+
+      implicit val request: Request[JsValue] =
+        FakeRequest("POST", "/update-htsuser-email").withBody(Json.toJson(updateEmailInput))
+
+      val controller = new HtsUserUpdateController(mockRepository, mcc, mockAuthConnector)
+
+      inSequence {
+        mockAuth(AuthWithCL200, v2Nino)(Right(mockedNinoRetrieval))
+        mockUpdateEmailRepository(updateEmailInput.nino.nino, updateEmailInput.email)(false)
+
+      }
+
+      val result = controller.updateEmail()(fakeRequest.withJsonBody(Json.toJson(htsReminderUser)))
+      status(result) shouldBe 404
+
+    }
+
+    "return a Bad request response if Hts users details for email change are in-correct" in {
+
+      val inValidFormData = "Not able to Stringify to HtsUser"
+      val fakeRequest = FakeRequest("POST", "/")
+
+      implicit val request: Request[JsValue] =
+        FakeRequest("POST", "/update-htsuser-email").withBody(Json.toJson(inValidFormData))
+
+      val controller = new HtsUserUpdateController(mockRepository, mcc, mockAuthConnector)
+
+      inSequence {
+        mockAuth(AuthWithCL200, v2Nino)(Right(mockedNinoRetrieval))
+
+      }
+
+      val result = controller.updateEmail()(fakeRequest.withJsonBody(Json.toJson(inValidFormData)))
+      status(result) shouldBe 400
 
     }
 

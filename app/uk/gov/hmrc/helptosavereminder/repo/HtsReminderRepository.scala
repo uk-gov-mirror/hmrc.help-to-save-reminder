@@ -47,6 +47,7 @@ trait HtsReminderRepository {
   def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
   def findByNino(nino: String): Future[Option[HtsUser]]
   def deleteHtsUser(nino: String): Future[Either[String, Unit]]
+  def updateEmail(nino: String, email: String): Future[Boolean]
 
 }
 
@@ -120,6 +121,28 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
           Logger.error("Failed to update HtsUser", e)
           false
         // $COVERAGE-ON$
+      }
+
+  }
+
+  override def updateEmail(nino: String, email: String): Future[Boolean] = {
+
+    val startTime = System.currentTimeMillis()
+    val selector = Json.obj("nino" -> nino)
+    val modifier = Json.obj("$set" -> Json.obj("email" -> email))
+    val result = proxyCollection.update(ordered = false).one(selector, modifier)
+
+    Logger.info("Entered the updateEmail for user nino = " + nino)
+
+    result
+      .map { status =>
+        Logger.debug(s"[HtsReminderMongoRepository][updateEmail] updated:, result : $status ")
+        status.ok
+      }
+      .recover {
+        case e =>
+          //Logger.error("Failed to update HtsUser Email", e)
+          false
       }
 
   }

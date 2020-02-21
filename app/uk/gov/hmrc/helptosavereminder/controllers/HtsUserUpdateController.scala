@@ -22,7 +22,7 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth
-import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUser}
+import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUser, UpdateEmail}
 import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository, HtsReminderRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -78,6 +78,27 @@ class HtsUserUpdateController @Inject()(
           repository.deleteHtsUser(userReminder.nino).map {
             case Left(error) => NotModified
             case Right(())   => Ok
+          }
+        }
+      )
+  }
+
+  def updateEmail(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
+    request.body.asJson.get
+      .validate[UpdateEmail]
+      .fold(
+        error => {
+          Logger.error(s"Unable to de-serialise request as a HtsUser: ${error.mkString}")
+          Future.successful(BadRequest)
+        },
+        (userRequest: UpdateEmail) => {
+          repository.updateEmail(userRequest.nino.nino, userRequest.email).map {
+            case true => {
+              Ok
+            }
+            case false => {
+              NotFound
+            }
           }
         }
       )

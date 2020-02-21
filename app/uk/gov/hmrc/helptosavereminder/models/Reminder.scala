@@ -33,6 +33,14 @@ case class HtsUser(
   bounceCount: Int = 0,
   callBackUrlRef: String = "")
 
+case class UpdateCallBackRef(reminder: HtsUser, callBackRefUrl: String)
+
+case class UpdateCallBackSuccess(reminder: HtsUser)
+
+case class CancelHtsUserReminder(nino: String)
+
+case class UpdateEmail(nino: Nino, email: String)
+
 object HtsUser {
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
   implicit val idFormat = ReactiveMongoFormats.objectIdFormats
@@ -60,12 +68,6 @@ object ActorUtils {
   val FAILURE = "FAILURE"
 }
 
-case class UpdateCallBackRef(reminder: HtsUser, callBackRefUrl: String)
-
-case class UpdateCallBackSuccess(reminder: HtsUser)
-
-case class CancelHtsUserReminder(nino: String)
-
 object CancelHtsUserReminder {
 
   implicit val htsUserCancelFormat: Format[CancelHtsUserReminder] = Json.format[CancelHtsUserReminder]
@@ -75,4 +77,16 @@ object CancelHtsUserReminder {
   implicit val reads: Reads[CancelHtsUserReminder] = (
     (JsPath \ "nino").read[String].orElse((JsPath \ "nino").read[String]).map(CancelHtsUserReminder.apply(_))
   )
+}
+
+object UpdateEmail {
+
+  implicit val htsUpdateEmailFormat: Format[UpdateEmail] = Json.format[UpdateEmail]
+
+  implicit val writes: Writes[UpdateEmail] = Writes[UpdateEmail](s ⇒ JsString(s.toString))
+
+  implicit val reads: Reads[UpdateEmail] = (
+    (JsPath \ "nino").read[String].orElse((JsPath \ "nino").read[String]).map(Nino.apply(_)) and
+      (JsPath \ "email").read[String]
+  )(UpdateEmail.apply(_, _))
 }
