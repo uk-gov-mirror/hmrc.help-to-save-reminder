@@ -164,4 +164,15 @@ class HtsReminderRepositorySpec
 
     }
   }
+
+  "Calls to updateEmail on Hts Reminder repository" should {
+    "should successfully update the users email " in {
+
+      val updateStatus: Future[Boolean] =
+        htsReminderMongoRepository.updateEmail("SK798383D", "modifiedReminder@test.com")
+
+      await(updateStatus) shouldBe true
+
+    }
+  }
 }
