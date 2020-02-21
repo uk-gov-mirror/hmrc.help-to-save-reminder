@@ -35,7 +35,7 @@ package uk.gov.helptosavereminder.controllers
 import com.kenshoo.play.metrics.PlayModule
 import uk.gov.hmrc.domain.Nino
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{ControllerComponents, Request}
 import uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
@@ -184,6 +184,9 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
         case Success(value) => value.get.nino
         case Failure(value) =>
       })
+
+      val json = Json.toJson(jsonRequest)
+      Json.fromJson[CancelHtsUserReminder](json) shouldBe JsSuccess(cancelHtsUser)
 
       val fakeRequest = FakeRequest("POST", "/")
 

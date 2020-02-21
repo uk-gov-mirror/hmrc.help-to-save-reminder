@@ -134,6 +134,22 @@ class HtsReminderRepositorySpec
     }
   }
 
+  "Calls to updateReminderUser on Hts Reminder repository" should {
+    "should successfully create the user if update fails " in {
+
+      val reminderValue = ReminderGenerator.nextReminder
+
+      val modifiedReminder =
+        reminderValue.copy(email = "raomohan2012@yahoo.com", optInStatus = true)
+
+      val updateStatus: Future[Boolean] =
+        htsReminderMongoRepository.updateReminderUser(modifiedReminder)
+
+      await(updateStatus) shouldBe true
+
+    }
+  }
+
   "Calls to findByNino on Hts Reminder repository" should {
     "should successfully find the user " in {
 
