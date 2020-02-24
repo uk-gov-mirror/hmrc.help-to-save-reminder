@@ -23,6 +23,7 @@ import uk.gov.hmrc.helptosavereminder.models.{HtsUser, UpdateCallBackRef, Update
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
 
 import scala.concurrent.ExecutionContext
 
@@ -45,9 +46,7 @@ class HtsUserUpdateActor(
   override def receive: Receive = {
     case reminder: HtsUser => {
 
-      Logger.info("Entered the updateNextSendDate message handler for  " + reminder.nino.nino)
-
-      repository.updateNextSendDate(reminder.nino.nino).map {
+      repository.updateNextSendDate(reminder.nino.nino, reminder.nextSendDate).map {
 
         case true => {
           Logger.info("Updated the User nextSendDate for " + reminder.nino)

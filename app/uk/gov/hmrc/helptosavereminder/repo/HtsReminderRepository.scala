@@ -41,14 +41,13 @@ import scala.util.{Failure, Success, Try}
 trait HtsReminderRepository {
   def createReminder(reminder: HtsUser): Future[Either[String, HtsUser]]
   def findHtsUsersToProcess(): Future[Option[List[HtsUser]]]
-  def updateNextSendDate(nino: String): Future[Boolean]
+  def updateNextSendDate(nino: String, nextSendDate: LocalDate): Future[Boolean]
   def updateEmailBounceCount(nino: String): Future[Boolean]
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
   def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
   def findByNino(nino: String): Future[Option[HtsUser]]
   def deleteHtsUser(nino: String): Future[Either[String, Unit]]
-  def updateEmail(nino: String, email: String): Future[Boolean]
-
+  def updateEmail(nino: String, name: String, email: String): Future[Boolean]
 }
 
 class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
@@ -101,14 +100,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   }
 
-  override def updateNextSendDate(nino: String): Future[Boolean] = {
+  override def updateNextSendDate(nino: String, nextSendDate: LocalDate): Future[Boolean] = {
 
     val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
-    val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> LocalDate.now()))
+    val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> nextSendDate))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
-
-    Logger.info("Entered the updateNextSendDate for user nino = " + nino)
 
     result
       .map { status =>
@@ -125,14 +122,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   }
 
-  override def updateEmail(nino: String, email: String): Future[Boolean] = {
+  override def updateEmail(nino: String, name: String, email: String): Future[Boolean] = {
 
     val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
-    val modifier = Json.obj("$set" -> Json.obj("email" -> email))
+    val modifier = Json.obj("$set" -> Json.obj("email" -> email, "name" -> name))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
-
-    Logger.info("Entered the updateEmail for user nino = " + nino)
 
     result
       .map { status =>

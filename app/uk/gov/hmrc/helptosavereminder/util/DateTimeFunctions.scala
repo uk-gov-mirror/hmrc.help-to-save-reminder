@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.helptosavereminder.util
 
-import java.time.LocalDate
+import java.time.{Duration, LocalDate, LocalDateTime, YearMonth, ZoneId}
 import java.util.Calendar
 
 object DateTimeFunctions {
@@ -26,10 +26,65 @@ object DateTimeFunctions {
     val currentDayOfMonth = Calendar.getInstance.get(Calendar.DAY_OF_MONTH)
     val nextAvailableDayOfMonth = daysToReceive.filter(x => x > currentDayOfMonth).headOption
 
+    val maxDaysInMonth =
+      (YearMonth.of(Calendar.getInstance.get(Calendar.YEAR), Calendar.getInstance.get(Calendar.MONTH))).lengthOfMonth()
+
     nextAvailableDayOfMonth match {
       case Some(day) => (LocalDate.now).plusDays(day - currentDayOfMonth)
       case None      => (LocalDate.now).plusMonths(1).withDayOfMonth(daysToReceive.head)
     }
 
+  }
+
+  def getNextSchedule(scheduledDays: String, scheduledTimes: String): Long = {
+
+    val scheduledDaysList = scheduledDays.split(",").toList
+    val scheduledTimesList = scheduledTimes.split(",").toList
+
+    val mapOfScheduledTimes = scheduledDaysList.flatMap({ day =>
+      {
+        scheduledTimesList.map({ timePoint =>
+          (day.toInt, timePoint.split(':').toList(0), timePoint.split(':').toList(1))
+        })
+      }
+    })
+
+    val scheduledTimesFinalized = mapOfScheduledTimes.map(
+      { x =>
+        {
+
+          (LocalDate.now)
+            .plusMonths(0)
+            .withDayOfMonth(x._1.toInt)
+            .atStartOfDay()
+            .plusHours(x._2.toInt)
+            .plusMinutes(x._3.toInt)
+
+        }
+      }
+    )
+
+    val nextTimeSlot = scheduledTimesFinalized.find(x => x.isAfter(LocalDateTime.now()))
+
+    nextTimeSlot match {
+      case Some(slot) => {
+
+        Duration.between(LocalDateTime.now(), slot).toNanos
+
+      }
+      case None => {
+
+        val timeTuples = mapOfScheduledTimes.apply(0)
+        val nextMonthSlot = (LocalDate.now)
+          .plusMonths(1)
+          .withDayOfMonth(timeTuples._1)
+          .atStartOfDay()
+          .plusHours(timeTuples._2.toInt)
+          .plusMinutes(timeTuples._3.toInt)
+
+        Duration.between(LocalDateTime.now(), nextMonthSlot).toNanos
+
+      }
+    }
   }
 }
