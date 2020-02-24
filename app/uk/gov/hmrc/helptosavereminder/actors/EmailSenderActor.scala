@@ -22,6 +22,7 @@ import javax.inject.Singleton
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
+import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -67,7 +68,9 @@ class EmailSenderActor @Inject()(
 
       sendReceivedTemplatedEmail(template).map({
         case true => {
-          htsUserUpdateActor ! successReminder.reminder
+          val nextSendDate = DateTimeFunctions.getNextSendDate(successReminder.reminder.daysToReceive)
+          val updatedReminder = successReminder.reminder.copy(nextSendDate = nextSendDate)
+          htsUserUpdateActor ! updatedReminder
         }
         case false =>
       })

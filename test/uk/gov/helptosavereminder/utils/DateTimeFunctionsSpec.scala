@@ -47,6 +47,7 @@ class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSu
       val returnDate3 = DateTimeFunctions.getNextSendDate(Seq(1, 10))
       val returnDate4 = DateTimeFunctions.getNextSendDate(Seq(25))
       val returnDate5 = DateTimeFunctions.getNextSendDate(Seq(27, 28))
+      val returnDate6 = DateTimeFunctions.getNextSendDate(Seq(33))
     }
 
   }

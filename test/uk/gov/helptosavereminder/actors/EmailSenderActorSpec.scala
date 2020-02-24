@@ -111,7 +111,7 @@ class EmailSenderActorSpec
           any[Seq[(String, String)]])(any(), any(), any[HeaderCarrier], any[ExecutionContext]))
         .thenReturn(Future.successful(HttpResponse(202)))
 
-      when(mockRepository.updateNextSendDate(any()))
+      when(mockRepository.updateNextSendDate(any(), any()))
         .thenReturn(Future.successful(true))
 
       when(mockRepository.updateCallBackRef(any(), any()))
