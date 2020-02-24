@@ -48,7 +48,6 @@ trait HtsReminderRepository {
   def findByNino(nino: String): Future[Option[HtsUser]]
   def deleteHtsUser(nino: String): Future[Either[String, Unit]]
   def updateEmail(nino: String, name: String, email: String): Future[Boolean]
-
 }
 
 class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)

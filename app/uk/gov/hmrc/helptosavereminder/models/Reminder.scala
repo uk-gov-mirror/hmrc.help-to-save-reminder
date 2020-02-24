@@ -90,4 +90,5 @@ object UpdateEmail {
       (JsPath \ "name").read[String] and
       (JsPath \ "email").read[String]
   )(UpdateEmail.apply(_, _, _))
+
 }

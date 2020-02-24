@@ -88,14 +88,3 @@ object DateTimeFunctions {
     }
   }
 }
-
-/*object HelloWorld {
-  def main(args: Array[String]): Unit = {
-
-    println("NextSend Date for Seq(1) = " + DateTimeFunctions.getNextSendDate(Seq(1)))
-    println("NextSend Date for Seq(25) = " + DateTimeFunctions.getNextSendDate(Seq(25)))
-    println("NextSend Date for Seq(1,25) = " + DateTimeFunctions.getNextSendDate(Seq(1, 25)))
-
-    DateTimeFunctions.getNextSchedule("1,25", "10:29,16:30")
-  }
-}*/

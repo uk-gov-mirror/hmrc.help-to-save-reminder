@@ -84,24 +84,24 @@ class HtsUserUpdateController @Inject()(
   }
 
   def updateEmail(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
-      request.body.asJson.get
-        .validate[UpdateEmail]
-        .fold(
-          error => {
-            Logger.error(s"Unable to de-serialise request as a HtsUser: ${error.mkString}")
-            Future.successful(BadRequest)
-          },
-          (userRequest: UpdateEmail) => {
-            repository.updateEmail(userRequest.nino.nino, userRequest.name, userRequest.email).map {
-              case true => {
-                Ok
-              }
-              case false => {
-                NotFound
-              }
+    request.body.asJson.get
+      .validate[UpdateEmail]
+      .fold(
+        error => {
+          Logger.error(s"Unable to de-serialise request as a HtsUser: ${error.mkString}")
+          Future.successful(BadRequest)
+        },
+        (userRequest: UpdateEmail) => {
+          repository.updateEmail(userRequest.nino.nino, userRequest.name, userRequest.email).map {
+            case true => {
+              Ok
+            }
+            case false => {
+              NotFound
             }
           }
-        )
-    }
+        }
+      )
+  }
 
 }
