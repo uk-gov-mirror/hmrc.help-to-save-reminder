@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.helptosavereminder.util
 
-import java.time.{LocalDate, LocalDateTime, YearMonth, ZoneId}
+import java.time.{Duration, LocalDate, LocalDateTime, YearMonth, ZoneId}
 import java.util.Calendar
 
 object DateTimeFunctions {
@@ -36,12 +36,12 @@ object DateTimeFunctions {
 
   }
 
-  def getNextSchedule(scheduledDays: String, scheduledTimes: String) = {
+  def getNextSchedule(scheduledDays: String, scheduledTimes: String): Long = {
 
     val scheduledDaysList = scheduledDays.split(",").toList
     val scheduledTimesList = scheduledTimes.split(",").toList
 
-    val mapOfMaps = scheduledDaysList.flatMap({ day =>
+    val mapOfScheduledTimes = scheduledDaysList.flatMap({ day =>
       {
         scheduledTimesList.map({ timePoint =>
           (day.toInt, timePoint.split(':').toList(0), timePoint.split(':').toList(1))
@@ -49,9 +49,7 @@ object DateTimeFunctions {
       }
     })
 
-    println(mapOfMaps)
-
-    val scheduledTimesFinalized = mapOfMaps.map(
+    val scheduledTimesFinalized = mapOfScheduledTimes.map(
       { x =>
         {
 
@@ -70,31 +68,34 @@ object DateTimeFunctions {
 
     nextTimeSlot match {
       case Some(slot) => {
-        val longMilliSecs = slot.atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
-        val currentTimeInMillis = System.currentTimeMillis()
-        val delayInMillis = (longMilliSecs - currentTimeInMillis)
-        println("Nexttime slot in Millis Away: " + delayInMillis)
-        println("Nexttime slot in Java Format " + LocalDateTime.now().plusSeconds(delayInMillis/1000) )
+
+        Duration.between(LocalDateTime.now(), slot).toNanos
+
       }
-      case None       => {
-        val timeTuples = mapOfMaps.apply(0)
-        val nextMonthSlot = (LocalDate.now).plusMonths(1).withDayOfMonth(timeTuples._1).atStartOfDay().plusHours(timeTuples._2.toInt).plusMinutes(timeTuples._3.toInt)
-        println("No time slot this month, nextMonthSlot = " + nextMonthSlot)
+      case None => {
+
+        val timeTuples = mapOfScheduledTimes.apply(0)
+        val nextMonthSlot = (LocalDate.now)
+          .plusMonths(1)
+          .withDayOfMonth(timeTuples._1)
+          .atStartOfDay()
+          .plusHours(timeTuples._2.toInt)
+          .plusMinutes(timeTuples._3.toInt)
+
+        Duration.between(LocalDateTime.now(), nextMonthSlot).toNanos
+
       }
     }
-
-
-
   }
 }
 
-object HelloWorld {
+/*object HelloWorld {
   def main(args: Array[String]): Unit = {
 
     println("NextSend Date for Seq(1) = " + DateTimeFunctions.getNextSendDate(Seq(1)))
     println("NextSend Date for Seq(25) = " + DateTimeFunctions.getNextSendDate(Seq(25)))
-    println("NextSend Date for Seq(1,25) = " + DateTimeFunctions.getNextSendDate(Seq(1,25)))
+    println("NextSend Date for Seq(1,25) = " + DateTimeFunctions.getNextSendDate(Seq(1, 25)))
 
-    DateTimeFunctions.getNextSchedule("1,22", "10:30,16:30")
+    DateTimeFunctions.getNextSchedule("1,25", "10:29,16:30")
   }
-}
+}*/

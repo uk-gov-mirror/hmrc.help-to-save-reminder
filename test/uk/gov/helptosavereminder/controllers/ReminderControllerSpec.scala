@@ -84,10 +84,10 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
       .expects(nino)
       .returning(result)
 
-  def mockUpdateEmailRepository(nino: String, email: String)(result: Boolean): Unit =
+  def mockUpdateEmailRepository(nino: String, name: String, email: String)(result: Boolean): Unit =
     (mockRepository
-      .updateEmail(_: String, _: String))
-      .expects(nino, email)
+      .updateEmail(_: String, _: String, _: String))
+      .expects(nino, name, email)
       .returning(result)
 
   val fakeRequest = FakeRequest()
@@ -255,7 +255,7 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
     "be able to return a success if Hts users details for email change are correct" in {
 
       val htsReminderUser = (ReminderGenerator.nextReminder).copy(nino = Nino("AE123456D"))
-      val updateEmailInput = UpdateEmail(htsReminderUser.nino, htsReminderUser.email)
+      val updateEmailInput = UpdateEmail(htsReminderUser.nino, htsReminderUser.name, htsReminderUser.email)
       val fakeRequest = FakeRequest("POST", "/")
 
       implicit val request: Request[JsValue] =
@@ -265,7 +265,7 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
 
       inSequence {
         mockAuth(AuthWithCL200, v2Nino)(Right(mockedNinoRetrieval))
-        mockUpdateEmailRepository(updateEmailInput.nino.nino, updateEmailInput.email)(true)
+        mockUpdateEmailRepository(updateEmailInput.nino.nino, updateEmailInput.name, updateEmailInput.email)(true)
 
       }
 
@@ -277,7 +277,7 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
     "be able to return a success with Not Found if Hts users details for email change are correct" in {
 
       val htsReminderUser = (ReminderGenerator.nextReminder).copy(nino = Nino("AE123456D"))
-      val updateEmailInput = UpdateEmail(htsReminderUser.nino, htsReminderUser.email)
+      val updateEmailInput = UpdateEmail(htsReminderUser.nino, htsReminderUser.name, htsReminderUser.email)
       val fakeRequest = FakeRequest("POST", "/")
 
       implicit val request: Request[JsValue] =
@@ -287,7 +287,7 @@ class HtsUserUpdateControllerSpec extends AuthSupport {
 
       inSequence {
         mockAuth(AuthWithCL200, v2Nino)(Right(mockedNinoRetrieval))
-        mockUpdateEmailRepository(updateEmailInput.nino.nino, updateEmailInput.email)(false)
+        mockUpdateEmailRepository(updateEmailInput.nino.nino, updateEmailInput.name, updateEmailInput.email)(false)
 
       }
 

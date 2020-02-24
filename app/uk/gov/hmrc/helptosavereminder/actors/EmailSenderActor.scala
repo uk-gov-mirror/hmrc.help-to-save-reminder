@@ -58,8 +58,6 @@ class EmailSenderActor @Inject()(
 
     case successReminder: UpdateCallBackSuccess => {
 
-      Logger.info("Received the DB Update Success for " + successReminder.reminder.nino)
-
       val template =
         HtsReminderTemplate(
           successReminder.reminder.email,

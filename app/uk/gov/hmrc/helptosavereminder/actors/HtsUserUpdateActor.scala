@@ -46,8 +46,6 @@ class HtsUserUpdateActor(
   override def receive: Receive = {
     case reminder: HtsUser => {
 
-      Logger.info("Entered the updateNextSendDate message handler for  " + reminder.nino.nino)
-
       repository.updateNextSendDate(reminder.nino.nino, reminder.nextSendDate).map {
 
         case true => {

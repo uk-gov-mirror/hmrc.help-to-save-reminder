@@ -32,13 +32,18 @@ package uk.gov.helptosavereminder.utils
  * limitations under the License.
  */
 
-import java.time.LocalDate
+import java.time.{LocalDate, YearMonth}
+import java.util.Calendar
 
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
 
 class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSuite {
+
+  //val lastDayOftheMonth =
+  //  (YearMonth.of(Calendar.getInstance.get(Calendar.YEAR), Calendar.getInstance.get(Calendar.MONTH))).lengthOfMonth()
+  val lastDayOftheMonth = Calendar.getInstance.getActualMaximum(Calendar.DAY_OF_MONTH);
 
   "DateTimeFunctions object " should {
     "return appropriate day " in {
@@ -48,6 +53,10 @@ class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSu
       val returnDate4 = DateTimeFunctions.getNextSendDate(Seq(25))
       val returnDate5 = DateTimeFunctions.getNextSendDate(Seq(27, 28))
       val returnDate6 = DateTimeFunctions.getNextSendDate(Seq(33))
+      val returnTimeInNanos1 = DateTimeFunctions.getNextSchedule("1,25", "10:29,16:30")
+      val returnTimeInNanos2 = DateTimeFunctions.getNextSchedule("1,28,15", "10:29,16:30")
+      val returnTimeInNanos3 = DateTimeFunctions.getNextSchedule("1", "10:29,16:30")
+      val returnTimeInNanos4 = DateTimeFunctions.getNextSchedule(lastDayOftheMonth.toString, "10:29,16:30")
     }
 
   }

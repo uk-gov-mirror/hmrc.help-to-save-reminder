@@ -86,7 +86,8 @@ class HtsReminderRepositorySpec
 
       val reminderValue = ReminderGenerator.nextReminder
 
-      val nextSendDate: Future[Boolean] = htsReminderMongoRepository.updateNextSendDate(reminderValue.nino.toString(), LocalDate.now())
+      val nextSendDate: Future[Boolean] =
+        htsReminderMongoRepository.updateNextSendDate(reminderValue.nino.toString(), LocalDate.now())
 
       await(nextSendDate) shouldBe true
 
@@ -187,7 +188,7 @@ class HtsReminderRepositorySpec
     "should successfully update the users email " in {
 
       val updateStatus: Future[Boolean] =
-        htsReminderMongoRepository.updateEmail("SK798383D", "modifiedReminder@test.com")
+        htsReminderMongoRepository.updateEmail("SK798383D", "James Tinder", "modifiedReminder@test.com")
 
       await(updateStatus) shouldBe true
 

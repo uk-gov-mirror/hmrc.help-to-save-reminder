@@ -39,7 +39,7 @@ case class UpdateCallBackSuccess(reminder: HtsUser)
 
 case class CancelHtsUserReminder(nino: String)
 
-case class UpdateEmail(nino: Nino, email: String)
+case class UpdateEmail(nino: Nino, name: String, email: String)
 
 object HtsUser {
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
@@ -87,6 +87,7 @@ object UpdateEmail {
 
   implicit val reads: Reads[UpdateEmail] = (
     (JsPath \ "nino").read[String].orElse((JsPath \ "nino").read[String]).map(Nino.apply(_)) and
+      (JsPath \ "name").read[String] and
       (JsPath \ "email").read[String]
-  )(UpdateEmail.apply(_, _))
+  )(UpdateEmail.apply(_, _, _))
 }

@@ -24,6 +24,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
+import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -49,6 +50,10 @@ class ProcessingSupervisor @Inject()(
 
   val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
 
+  val scheduledDays = config.get[String]("scheduledDays")
+
+  val scheduledTimes = config.get[String]("scheduledTimes")
+
   val lockKeeper = new LockKeeper {
 
     override def repo: LockRepository = lockrepo //The repo created before
@@ -70,38 +75,7 @@ class ProcessingSupervisor @Inject()(
     // $COVERAGE-ON$
   }
 
-  val interval = 24 hours
-
-  val startTimes: List[LocalTime] = {
-    config.get[String]("scheduleFor").split(',') map {
-      LocalTime.parse(_)
-    }
-  }.toList
-
-  /*val uk.gov.hmrc.actors: Array[Cancellable] = startTimes map { time =>
-    val delay = calculateInitialDelay(time)
-    Logger.info(s"Scheduling reminder job for ${time.toString} by creating an initial delay of $delay seconds")
-    system.scheduler.schedule(delay, interval, reminderActor, "")
-  }*/
-
-  private def calculateInitialDelay(time: LocalTime): FiniteDuration = {
-    val now = LocalDateTime.now
-    val target = LocalDateTime.of(LocalDate.now, time)
-
-    if (target.isAfter(now)) {
-      Logger.info(
-        "The FUTURE schedule is " + (target.toEpochSecond(ZoneOffset.UTC) - now
-          .toEpochSecond(ZoneOffset.UTC)).seconds)
-      (target.toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
-    } else {
-      Logger.info(
-        "The PRESENT schedule is " + (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(
-          ZoneOffset.UTC)).seconds)
-      (target.plusDays(1).toEpochSecond(ZoneOffset.UTC) - now.toEpochSecond(ZoneOffset.UTC)).seconds
-    }
-  }
-
-  private def getNextDelayInMicros() = startTimes.map(x => calculateInitialDelay(x)).sorted.head.toSeconds
+  private def getNextDelayInNanos() = DateTimeFunctions.getNextSchedule(scheduledDays, scheduledTimes)
 
   override def receive: Receive = {
 
@@ -112,9 +86,12 @@ class ProcessingSupervisor @Inject()(
 
     case BOOTSTRAP => {
 
-      Logger.info("[ProcessingSupervisor] BOOTSTRAP processing started.")
+      Logger.info(
+        "[ProcessingSupervisor] BOOTSTRAP processing started and the next schedule is at : " + LocalDateTime
+          .now()
+          .plusNanos(getNextDelayInNanos()))
 
-      context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, START)
+      context.system.scheduler.scheduleOnce(getNextDelayInNanos() nanos, self, START)
 
     }
 
@@ -148,12 +125,18 @@ class ProcessingSupervisor @Inject()(
           }
           case _ => {
             Logger.info(
-              s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock. Scheduling for next available slot")
-            context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, START)
+              s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock. Scheduling for next available slot at " + LocalDateTime
+                .now()
+                .plusNanos(getNextDelayInNanos()))
+            context.system.scheduler.scheduleOnce(getNextDelayInNanos() nanos, self, START)
           }
 
         }
-      context.system.scheduler.scheduleOnce(getNextDelayInMicros() seconds, self, START)
+      Logger.info(
+        "[ProcessingSupervisor] emailProcessing finished and next schedule is at : " + LocalDateTime
+          .now()
+          .plusNanos(getNextDelayInNanos()))
+      context.system.scheduler.scheduleOnce(getNextDelayInNanos() nanos, self, START)
 
     }
   }
