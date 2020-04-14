@@ -49,11 +49,11 @@ class HtsUserUpdateActor(
       repository.updateNextSendDate(reminder.nino.nino, reminder.nextSendDate).map {
 
         case true => {
-          Logger.info("Updated the User nextSendDate for " + reminder.nino)
+          Logger.debug("Updated the User nextSendDate for " + reminder.nino)
         }
 
         case _ => {
-          Logger.info("Failed to update nextSendDate for the User " + reminder.nino)
+          Logger.error("Failed to update nextSendDate for the User " + reminder.nino)
         }
       }
 
@@ -65,7 +65,7 @@ class HtsUserUpdateActor(
       repository.updateCallBackRef(updateReminder.reminder.nino.nino, updateReminder.callBackRefUrl).map {
 
         case true => {
-          Logger.info("Updated the User callBackRef for " + updateReminder.reminder.nino.nino)
+          Logger.debug("Updated the User callBackRef for " + updateReminder.reminder.nino.nino)
           origSender ! UpdateCallBackSuccess(updateReminder.reminder)
         }
 

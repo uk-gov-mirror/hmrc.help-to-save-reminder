@@ -84,7 +84,7 @@ class EmailSenderActor @Inject()(
 
     val callBackUrl = s"${servicesConfig.baseUrl("help-to-save-reminder")}/help-to-save-reminder/bouncedEmail/" + template.callBackUrlRef
 
-    Logger.info("The callback URL = " + callBackUrl)
+    Logger.debug("The callback URL = " + callBackUrl)
 
     val monthName =
       (YearMonth
@@ -93,8 +93,6 @@ class EmailSenderActor @Inject()(
         .toString
         .toLowerCase
         .capitalize
-
-    Logger.info("The month to send is " + monthName)
 
     val request = SendTemplatedEmailRequest(
       List(template.email),

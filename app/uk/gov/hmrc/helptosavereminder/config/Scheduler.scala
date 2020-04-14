@@ -44,7 +44,7 @@ class Scheduler @Inject()(
     "reminder-supervisor"
   )
 
-  Logger.info("About to send a BootStrap message to the Supervisor")
+  Logger.debug("About to send a BootStrap message to the Supervisor")
 
   reminderSupervisor ! BOOTSTRAP
 

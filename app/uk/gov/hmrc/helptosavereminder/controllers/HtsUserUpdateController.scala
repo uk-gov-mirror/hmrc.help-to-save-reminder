@@ -47,7 +47,7 @@ class HtsUserUpdateController @Inject()(
           Future.successful(BadRequest)
         },
         (htsUser: HtsUser) => {
-          Logger.info(s"The HtsUser received from frontend to update is : " + htsUser)
+          Logger.debug(s"The HtsUser received from frontend to update is : " + htsUser)
           repository.updateReminderUser(htsUser).map {
             case true => {
               val path = routes.HtsUserUpdateController.update().url
@@ -83,7 +83,7 @@ class HtsUserUpdateController @Inject()(
           Future.successful(BadRequest)
         },
         (userReminder: CancelHtsUserReminder) => {
-          Logger.info(s"The HtsUser received from frontend to delete is : " + userReminder)
+          Logger.debug(s"The HtsUser received from frontend to delete is : " + userReminder)
           repository.deleteHtsUser(userReminder.nino).map {
             case Left(error) => NotModified
             case Right(()) => {
