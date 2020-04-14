@@ -45,7 +45,7 @@ class EmailCallbackController @Inject()(
         .validate[EventsMap]
         .fold(
           { error =>
-            Logger.info(s"Unable to parse Events List for CallBackRequest = $callBackReference")
+            Logger.error(s"Unable to parse Events List for CallBackRequest = $callBackReference")
           }, { (eventsMap: EventsMap) =>
             if (eventsMap.events.exists(x => (x.event == "PermanentBounce"))) {
               val nino = callBackReference.takeRight(9)
@@ -53,10 +53,10 @@ class EmailCallbackController @Inject()(
               repository.findByNino(nino).flatMap {
                 htsUser =>
                   val url = s"${servicesConfig.baseUrl("email")}/hmrc/bounces/${htsUser.get.email}"
-                  Logger.info("The URL to request email deletion is " + url)
+                  Logger.debug("The URL to request email deletion is " + url)
                   repository.deleteHtsUserByCallBack(nino, callBackReference).map {
                     case Left(error) => {
-                      Logger.info("Could not delete from HtsReminder Repository for NINO = " + nino)
+                      Logger.error("Could not delete from HtsReminder Repository for NINO = " + nino)
                     }
                     case Right(()) => {
                       val path = routes.HtsUserUpdateController.deleteHtsUser().url
@@ -65,22 +65,22 @@ class EmailCallbackController @Inject()(
                           HtsReminderUserDeleted(htsUser.get.nino.nino, Json.toJson(htsUser)),
                           path),
                         htsUser.get.nino.nino)
-                      Logger.info(
+                      Logger.debug(
                         s"[EmailCallbackController] Email deleted from HtsReminder Repository for user = : ${htsUser.get.nino}")
                       http
                         .DELETE(url, Seq(("Content-Type", "application/json")))
                         .onComplete({
                           case Success(response) =>
-                            Logger.info(s"Email Service successfully unblocked email for Nino = ${htsUser.get.nino}")
+                            Logger.debug(s"Email Service successfully unblocked email for Nino = ${htsUser.get.nino}")
                           case Failure(ex) =>
-                            Logger.info(
+                            Logger.error(
                               s"Email Service could not unblock email for user Nino = ${htsUser.get.nino} and exception is $ex")
                         })
                     }
                   }
               }
             } else {
-              Logger.info(
+              Logger.debug(
                 s"CallBackRequest received for $callBackReference without PermanentBounce Event and " +
                   s"eventsList received from Email Service = ${eventsMap.events}")
             }

@@ -109,7 +109,7 @@ class ProcessingSupervisor @Inject()(
 
           repository.findHtsUsersToProcess().map {
             case Some(requests) if requests.nonEmpty => {
-              Logger.info(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
+              Logger.debug(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
 
               for (request <- requests) {
 
@@ -119,7 +119,7 @@ class ProcessingSupervisor @Inject()(
 
             }
             case _ => {
-              Logger.info(s"[ProcessingSupervisor][receive] no requests pending")
+              Logger.debug(s"[ProcessingSupervisor][receive] no requests pending")
             }
           }
 
@@ -160,8 +160,8 @@ class ProcessingSupervisor @Inject()(
     }
 
     schedulerRepository.createSchedule(scheduleToSave).map {
-      case Left(error) => Logger.info("Error occurred while writing the schedule details : " + scheduleToSave)
-      case Right(x)    => Logger.info("Scheduled saved to DB = " + x)
+      case Left(error) => Logger.error("Error occurred while writing the schedule details : " + scheduleToSave)
+      case Right(x)    => Logger.debug("Scheduled saved to DB = " + x)
     }
 
     nextInNanos
