@@ -50,16 +50,14 @@ object DateTimeFunctions {
     val scheduledTimesFinalized = mapOfScheduledTimes.map(
       x =>
         (LocalDate.now)
-          .plusMonths(0)
           .withDayOfMonth(x._1.toInt)
           .atStartOfDay()
+          .atZone(ZoneId.of("UTC"))
           .plusHours(x._2)
           .plusMinutes(x._3)
     )
 
-    val bstAdjustedTimes = scheduledTimesFinalized.map(x => if (isSummerTime(x)) x.minusHours(1) else x)
-
-    val nextTimeSlot = bstAdjustedTimes.find(x => x.isAfter(LocalDateTime.now()))
+    val nextTimeSlot = scheduledTimesFinalized.find(x => (x.toLocalDateTime).isAfter(LocalDateTime.now()))
 
     nextTimeSlot match {
       case Some(slot) => {
@@ -74,12 +72,11 @@ object DateTimeFunctions {
           .plusMonths(1)
           .withDayOfMonth(timeTuples._1)
           .atStartOfDay()
+          .atZone(ZoneId.of("UTC"))
           .plusHours(timeTuples._2.toInt)
           .plusMinutes(timeTuples._3.toInt)
 
-        val bstAdjustedNextMonthSlot = if (isSummerTime(nextMonthSlot)) nextMonthSlot.minusHours(1) else nextMonthSlot
-
-        Duration.between(LocalDateTime.now(), bstAdjustedNextMonthSlot).toNanos
+        Duration.between(LocalDateTime.now(), nextMonthSlot).toNanos
 
       }
     }
@@ -90,15 +87,4 @@ object DateTimeFunctions {
       .of(Calendar.getInstance.get(Calendar.YEAR), Calendar.getInstance.get(Calendar.MONTH) + 1))
       .lengthOfMonth()
 
-  private def isSummerTime(dateTimeToCheck: LocalDateTime): Boolean = {
-
-    val ukTz = ZoneId.of("Europe/London")
-    val zonedTimeSeconds = dateTimeToCheck.atZone(ukTz).getOffset.getTotalSeconds
-
-    if (zonedTimeSeconds > 0) {
-      true
-    } else
-      false
-
-  }
 }
