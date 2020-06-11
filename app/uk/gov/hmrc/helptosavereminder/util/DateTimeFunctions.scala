@@ -52,7 +52,7 @@ object DateTimeFunctions {
         (LocalDate.now)
           .withDayOfMonth(x._1.toInt)
           .atStartOfDay()
-          .atZone(ZoneId.of("UTC"))
+          .atZone(ZoneId.of("Europe/London"))
           .plusHours(x._2)
           .plusMinutes(x._3)
     )
@@ -72,7 +72,7 @@ object DateTimeFunctions {
           .plusMonths(1)
           .withDayOfMonth(timeTuples._1)
           .atStartOfDay()
-          .atZone(ZoneId.of("UTC"))
+          .atZone(ZoneId.of("Europe/London"))
           .plusHours(timeTuples._2.toInt)
           .plusMinutes(timeTuples._3.toInt)
 
