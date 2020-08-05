@@ -20,7 +20,11 @@ import play.api.libs.json.Json
 
 case class HtsReminderTemplate(email: String, name: String, callBackUrlRef: String)
 
-case class SendTemplatedEmailRequest(to: List[String], templateId: String, parameters: Map[String, String])
+case class SendTemplatedEmailRequest(
+  to: List[String],
+  templateId: String,
+  parameters: Map[String, String],
+  eventUrl: String)
 
 object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
