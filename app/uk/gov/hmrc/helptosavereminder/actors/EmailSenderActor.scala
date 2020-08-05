@@ -97,7 +97,8 @@ class EmailSenderActor @Inject()(
     val request = SendTemplatedEmailRequest(
       List(template.email),
       sendEmailTemplateId,
-      Map(nameParam -> template.name, monthParam -> monthName, callBackUrlParam -> callBackUrl))
+      Map(nameParam -> template.name, monthParam -> monthName),
+      callBackUrl)
 
     sendEmail(request)
 
