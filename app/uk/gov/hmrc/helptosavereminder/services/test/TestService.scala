@@ -17,6 +17,7 @@
 package uk.gov.hmrc.helptosavereminder.services.test
 
 import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.helptosavereminder.models.HtsUser
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 

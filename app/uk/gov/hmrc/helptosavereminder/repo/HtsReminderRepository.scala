@@ -20,6 +20,8 @@ import java.time.{LocalDate, ZoneId}
 
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
+import cats.instances.int._
+import cats.syntax.eq._
 import play.api.Logger
 import play.api.libs.json.{JsBoolean, JsObject, JsString, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -159,6 +161,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   override def updateReminderUser(htsReminder: HtsUser): Future[Boolean] = {
 
     val selector = Json.obj("nino" -> htsReminder.nino.value)
+
     val modifierJson = Json.obj(
       "optInStatus"   -> JsBoolean(htsReminder.optInStatus),
       "email"         -> htsReminder.email,
