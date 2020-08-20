@@ -18,7 +18,7 @@ package uk.gov.hmrc.helptosavereminder.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.libs.json._
+import play.api.libs.json.{JsResult, _}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth
@@ -62,6 +62,30 @@ class HtsUserUpdateController @Inject()(
         Logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
 
+    }
+  }
+
+  def updateEmail1(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
+    request.body.asJson.map(_.validate[HtsUser]) match {
+      case Some(JsSuccess(htsUser, _)) ⇒ {
+        Logger.debug(s"The HtsUser received from frontend to update is : " + htsUser.nino.nino)
+        repository.updateReminderUser(htsUser).map {
+          case true => {
+            val path = routes.HtsUserUpdateController.update().url
+            auditor.sendEvent(
+              HtsReminderUserUpdatedEvent(HtsReminderUserUpdated(htsUser.nino.nino, Json.toJson(htsUser)), path),
+              htsUser.nino.nino)
+            Ok(Json.toJson(htsUser))
+          }
+          case false => NotModified
+        }
+      }
+
+      case Some(error: JsError) ⇒
+        Future.successful(BadRequest)
+
+      case None ⇒
+        Future.successful(BadRequest)
     }
   }
 
