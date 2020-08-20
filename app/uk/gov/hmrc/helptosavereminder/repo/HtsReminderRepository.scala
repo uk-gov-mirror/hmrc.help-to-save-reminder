@@ -20,8 +20,6 @@ import java.time.{LocalDate, ZoneId}
 
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
-import cats.instances.int._
-import cats.syntax.eq._
 import play.api.Logger
 import play.api.libs.json.{JsBoolean, JsObject, JsString, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
