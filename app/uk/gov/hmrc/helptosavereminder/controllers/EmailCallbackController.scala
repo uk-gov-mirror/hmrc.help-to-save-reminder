@@ -46,6 +46,7 @@ class EmailCallbackController @Inject()(
     extends BackendController(cc) {
 
   def handleCallBack(callBackReference: String): Action[AnyContent] = Action.async { implicit request =>
+
     request.body.asJson.map(_.validate[EventsMap]) match {
       case Some(JsSuccess(eventsMap, _)) ⇒ {
         if (eventsMap.events.exists(x => (x.event === "PermanentBounce"))) {
@@ -80,6 +81,7 @@ class EmailCallbackController @Inject()(
                     })
                   Future.successful(Ok)
                 }
+
               }
             case None => Future.failed(new Exception("No Hts Schedule found"))
           }
