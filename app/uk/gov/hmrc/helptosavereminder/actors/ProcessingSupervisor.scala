@@ -28,6 +28,7 @@ import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
 import uk.gov.hmrc.http.HttpClient
+import org.quartz.CronExpression
 
 import org.quartz.CronExpression
 
@@ -57,6 +58,7 @@ class ProcessingSupervisor @Inject()(
     : String = config.getOptional[String](s"userScheduleCronExpression") map (_.replaceAll("_", " ")) getOrElse ("")
 
   lazy val repoLockPeriod: Int = config.getOptional[Int](s"mongodb.repoLockPeriod").getOrElse(55)
+
 
   val lockKeeper = new LockKeeper {
 

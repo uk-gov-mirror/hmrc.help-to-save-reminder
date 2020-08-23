@@ -92,10 +92,10 @@ class HtsUserUpdateController @Inject()(
         val errorString = error.prettyPrint()
         Logger.warn(s"Could not parse CancelHtsUserReminder JSON in request body: $errorString")
         Future.successful(BadRequest(s"Could not parse CancelHtsUserReminder JSON in request body: $errorString"))
+
       case None ⇒
         Logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
-
     }
   }
 
