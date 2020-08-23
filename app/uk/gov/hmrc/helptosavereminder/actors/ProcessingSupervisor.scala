@@ -28,7 +28,6 @@ import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
 import uk.gov.hmrc.http.HttpClient
-import org.quartz.CronExpression
 
 import org.quartz.CronExpression
 
@@ -66,6 +65,7 @@ class ProcessingSupervisor @Inject()(
     override def lockId: String = "emailProcessing"
 
     override val forceLockReleaseAfter: org.joda.time.Duration = org.joda.time.Duration.standardMinutes(repoLockPeriod)
+
 
     // $COVERAGE-OFF$
     override def tryLock[T](body: => Future[T])(implicit ec: ExecutionContext): Future[Option[T]] =
