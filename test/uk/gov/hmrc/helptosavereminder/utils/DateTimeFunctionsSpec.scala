@@ -127,7 +127,6 @@ class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSu
         DateTimeFunctions.getNextSendDate(Seq(1, 25), inputAtDec29th).getOrElse(LocalDate.now())
       monthsList((inputMonthsIndex + 1) % 12) shouldBe dateResult.getMonth.toString
       dateResult.getDayOfMonth shouldBe 1
-
     }
 
   }

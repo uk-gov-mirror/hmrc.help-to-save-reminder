@@ -150,8 +150,6 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
 
     val callBackReferences = "1580214107339AE456789B"
 
-    val callBackReferences = "1580214107339AE456789B"
-
     val htsReminderUser = (ReminderGenerator.nextReminder)
       .copy(nino = Nino("AE456789B"), callBackUrlRef = callBackReferences)
 

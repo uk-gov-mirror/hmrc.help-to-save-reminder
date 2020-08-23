@@ -24,7 +24,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
-import uk.gov.hmrc.helptosavereminder.models.{EventsMap, HtsReminderUserDeleted, HtsReminderUserDeletedEvent}
+import uk.gov.hmrc.helptosavereminder.models.{EventsMap, HtsReminderUserDeleted, HtsReminderUserDeletedEvent, UpdateEmail}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -46,7 +46,6 @@ class EmailCallbackController @Inject()(
     extends BackendController(cc) {
 
   def handleCallBack(callBackReference: String): Action[AnyContent] = Action.async { implicit request =>
-
     request.body.asJson.map(_.validate[EventsMap]) match {
       case Some(JsSuccess(eventsMap, _)) ⇒ {
         if (eventsMap.events.exists(x => (x.event === "PermanentBounce"))) {
@@ -81,7 +80,6 @@ class EmailCallbackController @Inject()(
                     })
                   Future.successful(Ok)
                 }
-
               }
             case None => Future.failed(new Exception("No Hts Schedule found"))
           }
@@ -100,6 +98,7 @@ class EmailCallbackController @Inject()(
       case None ⇒
         Logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
+
     }
   }
 }
