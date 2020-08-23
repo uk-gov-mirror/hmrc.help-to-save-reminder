@@ -28,5 +28,4 @@ object DateTimeFunctions {
       .map(today.plusDays(_))
       .find(x => daysToReceive.contains(x.getDayOfMonth))
 
-
 }

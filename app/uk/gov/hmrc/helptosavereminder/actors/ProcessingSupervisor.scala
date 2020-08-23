@@ -59,7 +59,6 @@ class ProcessingSupervisor @Inject()(
 
   lazy val repoLockPeriod: Int = config.getOptional[Int](s"mongodb.repoLockPeriod").getOrElse(55)
 
-
   val lockKeeper = new LockKeeper {
 
     override def repo: LockRepository = lockrepo //The repo created before

@@ -80,8 +80,6 @@ class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSu
       monthsList((inputMonthsIndex) % 12) shouldBe dateResult2.getOrElse(LocalDate.now()).getMonth.toString
       dateResult2.getOrElse(LocalDate.now()).getDayOfMonth shouldBe 25
 
-
-
       //Now we are at the 10th day of the present month and repeat the previous three tests.
       val inputAt10thtDayOfPresentMonth = localDateParam.withDayOfMonth(10)
       val dateResult3 = DateTimeFunctions.getNextSendDate(Seq(1, 25), inputAt10thtDayOfPresentMonth)
@@ -96,7 +94,6 @@ class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSu
       val dateResult5 = DateTimeFunctions.getNextSendDate(Seq(25), inputAt10thtDayOfPresentMonth)
       monthsList((inputMonthsIndex) % 12) shouldBe dateResult5.getOrElse(LocalDate.now()).getMonth.toString
       dateResult5.getOrElse(LocalDate.now()).getDayOfMonth shouldBe 25
-
 
       //Now we are at the 25th day of the present month and repeat the previous three tests.
       val inputAt25thtDayOfPresentMonth = localDateParam.withDayOfMonth(25)
@@ -124,9 +121,7 @@ class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSu
       monthsList((inputMonthsIndex) % 12) shouldBe dateResult.getOrElse(LocalDate.now()).getMonth.toString
       dateResult.getOrElse(LocalDate.now()).getDayOfMonth shouldBe 25
 
-
     }
-
 
     "return correct nextSendDate for a day in the December month of the year" in {
 
