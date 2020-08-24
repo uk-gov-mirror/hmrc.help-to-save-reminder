@@ -34,9 +34,8 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import uk.gov.hmrc.helptosavereminder.actors.{EmailSenderActor, ProcessingSupervisor}
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository, HtsReminderRepository}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, Upstream4xxResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, Upstream4xxResponse}
 import uk.gov.hmrc.lock.{LockMongoRepository, LockRepository}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 
