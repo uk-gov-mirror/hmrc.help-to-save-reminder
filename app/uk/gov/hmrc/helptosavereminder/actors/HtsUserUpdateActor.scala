@@ -22,8 +22,8 @@ import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.models.{HtsUser, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
+import uk.gov.hmrc.http.HttpClient
 
 import scala.concurrent.ExecutionContext
 

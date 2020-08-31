@@ -22,9 +22,8 @@ import play.api.inject.DefaultApplicationLifecycle
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import play.api.{Application, Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.actors.{EmailSenderActor, ProcessingSupervisor}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}

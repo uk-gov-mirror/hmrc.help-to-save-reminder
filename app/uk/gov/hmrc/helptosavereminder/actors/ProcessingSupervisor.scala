@@ -24,10 +24,10 @@ import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
-import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository}
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+import uk.gov.hmrc.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton

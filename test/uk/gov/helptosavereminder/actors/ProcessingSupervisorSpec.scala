@@ -30,8 +30,8 @@ import play.api.{Application, Mode}
 import uk.gov.hmrc.helptosavereminder.actors.ProcessingSupervisor
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository, HtsReminderRepository}
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.lock.{LockMongoRepository, LockRepository}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 
