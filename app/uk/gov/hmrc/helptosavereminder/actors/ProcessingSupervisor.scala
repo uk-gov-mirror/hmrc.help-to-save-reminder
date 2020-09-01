@@ -66,7 +66,6 @@ class ProcessingSupervisor @Inject()(
 
     override val forceLockReleaseAfter: org.joda.time.Duration = org.joda.time.Duration.standardMinutes(repoLockPeriod)
 
-
     // $COVERAGE-OFF$
     override def tryLock[T](body: => Future[T])(implicit ec: ExecutionContext): Future[Option[T]] =
       repo

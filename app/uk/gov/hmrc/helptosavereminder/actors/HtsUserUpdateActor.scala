@@ -54,7 +54,6 @@ class HtsUserUpdateActor(
           Logger.debug(
             s"Updated the User callBackRef for ${updateReminder.reminder.nino.value} with value : ${updateReminder.callBackRefUrl}")
           origSender ! UpdateCallBackSuccess(updateReminder.reminder, updateReminder.callBackRefUrl)
-
         }
         case _ => //Failure
       }

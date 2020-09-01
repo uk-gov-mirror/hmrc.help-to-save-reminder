@@ -18,6 +18,7 @@ package uk.gov.hmrc.helptosavereminder.actors
 
 import java.util.UUID
 import java.time.{LocalDate, ZoneId}
+import java.util.UUID
 
 import akka.actor._
 import com.google.inject.Inject
@@ -76,7 +77,6 @@ class EmailSenderActor @Inject()(
               htsUserUpdateActor ! updatedReminder
             case None =>
           }
-
         }
         case false => Logger.error(s"nextSendDate for User: $template cannot be updated.")
       })
