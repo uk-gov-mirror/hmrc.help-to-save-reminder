@@ -129,6 +129,7 @@ class DateTimeFunctionsSpec extends WordSpec with Matchers with GuiceOneAppPerSu
       val inputMonthsIndex = monthsList.indexOf(inputAtDec29th.getMonth.toString)
       val dateResult: LocalDate =
         DateTimeFunctions.getNextSendDate(Seq(1, 25), inputAtDec29th).getOrElse(LocalDate.now())
+
       monthsList((inputMonthsIndex + 1) % 12) shouldBe dateResult.getMonth.toString
       dateResult.getDayOfMonth shouldBe 1
     }
