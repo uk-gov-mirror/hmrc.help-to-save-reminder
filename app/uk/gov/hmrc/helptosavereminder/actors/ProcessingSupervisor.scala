@@ -84,8 +84,12 @@ class ProcessingSupervisor @Inject()(
         .lock(lockId, serverId, forceLockReleaseAfter)
         .flatMap { acquired =>
           if (acquired) {
-            body.map { case x => Some(x) }
-          } else Future.successful(None)
+            body.map {
+              case x => Some(x)
+            }
+          } else {
+            Future.successful(None)
+          }
         }
         .recoverWith { case ex => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
     // $COVERAGE-ON$

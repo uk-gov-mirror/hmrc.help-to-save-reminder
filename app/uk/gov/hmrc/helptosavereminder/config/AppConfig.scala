@@ -23,8 +23,6 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 @Singleton
 class AppConfig @Inject()(val config: Configuration, val environment: Environment, val servicesConfig: ServicesConfig) {
 
-  protected def mode: Mode = environment.mode
-
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
 
   val appName: String = config.get[String]("appName")

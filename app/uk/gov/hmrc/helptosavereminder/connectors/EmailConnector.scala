@@ -18,9 +18,8 @@ package uk.gov.hmrc.helptosavereminder.connectors
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import uk.gov.hmrc.helptosavereminder.models.SendTemplatedEmailRequest
+import uk.gov.hmrc.helptosavereminder.models.{ResponseCodeValues, SendTemplatedEmailRequest}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-
 import cats.instances.int._
 import cats.syntax.eq._
 
@@ -34,16 +33,19 @@ class EmailConnector @Inject()(http: HttpClient) {
     ec: ExecutionContext): Future[Boolean] =
     http.POST(url, request, Seq(("Content-Type", "application/json"))) map { response =>
       response.status match {
-        case 202 => Logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
-        case _   => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
+        case ResponseCodeValues.acceptedResponseCode =>
+          Logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
+        case _ => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
       }
     }
 
   def unBlockEmail(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     http.DELETE(url, Seq(("Content-Type", "application/json"))) map { response =>
       response.status match {
-        case x if x === 200 || x === 202 => Logger.debug(s"Email is successfully unblocked: ${response.body}"); true
-        case _                           => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
+        case x if x === ResponseCodeValues.acceptedResponseCode || x === ResponseCodeValues.okResponseCode =>
+          Logger.debug(s"Email is successfully unblocked: ${response.body}"); true
+        case _ =>
+          Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
       }
     }
 }

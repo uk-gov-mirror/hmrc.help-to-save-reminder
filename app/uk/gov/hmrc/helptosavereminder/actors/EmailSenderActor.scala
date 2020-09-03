@@ -23,6 +23,7 @@ import akka.actor._
 import com.google.inject.Inject
 import javax.inject.Singleton
 import play.api.{Configuration, Environment, Logger}
+
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
