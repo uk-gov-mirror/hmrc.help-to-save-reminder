@@ -38,6 +38,7 @@ lazy val wartRemoverSettings = {
         (baseDirectory.value ** "ProcessingSupervisor.scala").get ++
         (baseDirectory.value ** "EmailSenderActor.scala").get ++
         (baseDirectory.value ** "HtsUserUpdateActor.scala").get ++
+        (baseDirectory.value ** "EmailCallbackController.scala").get ++
         Seq(sourceManaged.value / "main" / "sbt-buildinfo" / "BuildInfo.scala") ++
         (baseDirectory.value / "app" / "uk" / "gov" / "hmrc" / "helptosavereminder" / "config").get,
     wartremoverExcluded in (Test, compile) ++=

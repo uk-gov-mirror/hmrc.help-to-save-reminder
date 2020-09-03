@@ -113,12 +113,10 @@ class EmailSenderActor @Inject()(
 
     val url = s"${servicesConfig.baseUrl("email")}/hmrc/email"
 
-    http.POST(url, request, Seq(("Content-Type", "application/json"))) map { response =>
-      response.status match {
-
-        case 202 => Logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
-        case _   => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
-
+    emailConnector.sendEmail(request, url) map { response =>
+      response match {
+        case true => Logger.debug(s"[EmailSenderActor] Email sent: $request"); true
+        case _    => Logger.error(s"[EmailSenderActor] Email not sent: $request"); false
       }
     }
   }

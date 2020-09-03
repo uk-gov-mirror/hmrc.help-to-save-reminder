@@ -17,6 +17,7 @@
 package uk.gov.hmrc.helptosavereminder.repo
 
 import java.time.LocalDate
+import java.util.UUID
 
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
@@ -172,6 +173,28 @@ class HtsReminderRepositorySpec
         case Success(x) => {
           val htsUserOption: Option[HtsUser] =
             htsReminderMongoRepository.findByNino("SK798383D")
+
+          await(htsUserOption).get.nino.value shouldBe "SK798383D"
+        }
+      })
+
+    }
+  }
+
+  "Calls to findByCallBackRef on Hts Reminder repository" should {
+    "should successfully find the user " in {
+
+      val callBackRef = UUID.randomUUID().toString
+
+      val reminderValue = (ReminderGenerator.nextReminder).copy(callBackUrlRef = callBackRef)
+
+      val result: Future[Boolean] =
+        htsReminderMongoRepository.updateReminderUser(reminderValue.copy(nino = Nino("SK798383D")))
+
+      result onComplete ({
+        case Success(x) => {
+          val htsUserOption: Option[HtsUser] =
+            htsReminderMongoRepository.findByCallBackUrlRef(callBackRef)
 
           await(htsUserOption).get.nino.value shouldBe "SK798383D"
         }

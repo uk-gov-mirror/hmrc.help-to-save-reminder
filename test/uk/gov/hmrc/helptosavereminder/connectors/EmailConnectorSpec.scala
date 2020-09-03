@@ -21,13 +21,13 @@ import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.helptosavereminder.models.SendTemplatedEmailRequest
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.mongo.MongoSpecSupport
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.test.UnitSpec
 
 import uk.gov.hmrc.http.{HeaderCarrier}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EmailConnectorSpec extends UnitSpec with MongoSpecSupport with GuiceOneAppPerSuite with MockitoSugar {
@@ -93,7 +93,7 @@ class EmailConnectorSpec extends UnitSpec with MongoSpecSupport with GuiceOneApp
       val url = "GET /sendEmail"
 
       when(mockHttp.DELETE[HttpResponse](any(), any())(any(), any(), any()))
-        .thenReturn(Future.failed(new Exception("Submit request failed")))
+        .thenReturn(Future.successful(HttpResponse(400)))
       val result = emailConnector.unBlockEmail(url)
 
       await(result) match {

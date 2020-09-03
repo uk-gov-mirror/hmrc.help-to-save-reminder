@@ -21,8 +21,10 @@ import play.api.Logger
 import uk.gov.hmrc.helptosavereminder.models.SendTemplatedEmailRequest
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
+import cats.instances.int._
+import cats.syntax.eq._
+
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 @Singleton
 class EmailConnector @Inject()(http: HttpClient) {
@@ -37,16 +39,11 @@ class EmailConnector @Inject()(http: HttpClient) {
       }
     }
 
-  def unBlockEmail(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
-    http
-      .DELETE(url, Seq(("Content-Type", "application/json")))
-      .onComplete({
-        case Success(response) =>
-          Future.successful(s"An unblock request to Email Service is sent")
-        case Failure(ex) =>
-          Logger.error(s"Email Service could not unblock email for user Nino = and exception is $ex")
-          Future.failed(new Exception("Email Service could not unblock email for user Nino"))
-      })
-    Future.successful(s"Email Service successfully unblocked email")
-  }
+  def unBlockEmail(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+    http.DELETE(url, Seq(("Content-Type", "application/json"))) map { response =>
+      response.status match {
+        case x if x === 200 || x === 202 => Logger.debug(s"Email is successfully unblocked: ${response.body}"); true
+        case _                           => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
+      }
+    }
 }

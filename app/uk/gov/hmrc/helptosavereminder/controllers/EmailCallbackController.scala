@@ -33,7 +33,6 @@ import cats.syntax.eq._
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 class EmailCallbackController @Inject()(
   http: HttpClient,
@@ -67,15 +66,18 @@ class EmailCallbackController @Inject()(
                     htsUser.nino.toString)
                   Logger.debug(
                     s"[EmailCallbackController] Email deleted from HtsReminder Repository for user = : ${htsUser.nino}")
+
                   emailConnector
-                    .unBlockEmail(url)
-                    .onComplete({
-                      case Success(response) =>
-                        Logger.debug(s"Email Service successfully unblocked email for Nino = ${htsUser.nino}")
-                      case Failure(ex) =>
-                        Logger.error(
-                          s"Email Service could not unblock email for user Nino = ${htsUser.nino} and exception is $ex")
-                    })
+                    .unBlockEmail(url) map { response =>
+                    response match {
+                      case true =>
+                        Logger.debug(s"Email successfully unblocked for request : $url")
+                        Future.successful(Ok)
+                      case _ =>
+                        Logger.debug(s"A request to unblock for Email is returned with error for $url")
+                        Future.successful(NOT_FOUND)
+                    }
+                  }
                   Future.successful(Ok)
                 }
               }
