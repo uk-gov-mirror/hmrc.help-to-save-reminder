@@ -45,6 +45,7 @@ trait HtsReminderRepository {
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
   def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
   def findByNino(nino: String): Future[Option[HtsUser]]
+  def findByCallBackUrlRef(callBackUrlRef: String): Future[Option[HtsUser]]
   def deleteHtsUser(nino: String): Future[Either[String, Unit]]
   def deleteHtsUserByCallBack(nino: String, callBackUrlRef: String): Future[Either[String, Unit]]
   def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Boolean]
@@ -237,6 +238,27 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val tryResult = Try {
       proxyCollection
         .find(Json.obj("nino" -> nino), Option.empty[JsObject])
+        .cursor[HtsUser](ReadPreference.primary)
+        .collect[List](maxDocs = 1, err = Cursor.FailOnError[List[HtsUser]]())
+    }
+
+    tryResult match {
+      case Success(s) => {
+        s.map { x =>
+          x.headOption
+        }
+      }
+      case Failure(f) => {
+        Future.successful(None)
+      }
+    }
+  }
+
+  override def findByCallBackUrlRef(callBackUrlRef: String): Future[Option[HtsUser]] = {
+
+    val tryResult = Try {
+      proxyCollection
+        .find(Json.obj("callBackUrlRef" -> callBackUrlRef), Option.empty[JsObject])
         .cursor[HtsUser](ReadPreference.primary)
         .collect[List](maxDocs = 1, err = Cursor.FailOnError[List[HtsUser]]())
     }

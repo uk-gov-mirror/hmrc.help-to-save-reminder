@@ -20,22 +20,20 @@ import akka.actor.{ActorSystem, Props}
 import akka.testkit._
 import com.kenshoo.play.metrics.PlayModule
 import org.mockito.ArgumentCaptor
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackSuccess}
-import play.api.{Application, Configuration, Environment, Mode}
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, SendTemplatedEmailRequest, UpdateCallBackSuccess}
+import play.api.{Application, Configuration, Mode}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import uk.gov.hmrc.helptosavereminder.actors.{EmailSenderActor, ProcessingSupervisor}
+import uk.gov.hmrc.helptosavereminder.config.AppConfig
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
-import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository, HtsReminderRepository}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, Upstream4xxResponse}
-import uk.gov.hmrc.lock.{LockMongoRepository, LockRepository}
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.lock.LockRepository
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 
@@ -64,6 +62,9 @@ class EmailSenderActorSpec
 
   lazy val applicationConfig = app.injector.instanceOf[Configuration]
   //val metrics = app.injector.instanceOf[ApplicationMetrics]
+
+  implicit lazy val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
+
   val mockLockRepo = mock[LockRepository]
 
   val httpClient = mock[HttpClient]
@@ -71,6 +72,8 @@ class EmailSenderActorSpec
   val env = mock[play.api.Environment]
 
   val servicesConfig = mock[ServicesConfig]
+
+  val emailConnector = mock[EmailConnector]
 
   val mongoApi = app.injector.instanceOf[play.modules.reactivemongo.ReactiveMongoComponent]
 
@@ -89,7 +92,7 @@ class EmailSenderActorSpec
       val htsUserUpdateActorProbe = TestProbe()
 
       val emailSenderActor = TestActorRef(
-        Props(new EmailSenderActor(httpClient, env, applicationConfig, servicesConfig, mockRepository) {
+        Props(new EmailSenderActor(httpClient, env, applicationConfig, servicesConfig, mockRepository, emailConnector) {
           //override lazy val repository = mockRepository
           //override val lockrepo = mockLockRepo
         }),
@@ -120,7 +123,7 @@ class EmailSenderActorSpec
 
         emailSenderActor ! mockObject
 
-        emailSenderActor ! UpdateCallBackSuccess(mockObject, "callBackUrlRefValue")
+        emailSenderActor ! UpdateCallBackSuccess(mockObject, "callBackSampleRef")
         //htsUserUpdateActorProbe.expectMsg(mockObject)
 
       }

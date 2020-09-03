@@ -24,6 +24,8 @@ import akka.actor._
 import com.google.inject.Inject
 import javax.inject.Singleton
 import play.api.{Configuration, Environment, Logger}
+import uk.gov.hmrc.helptosavereminder.config.AppConfig
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
@@ -38,7 +40,8 @@ class EmailSenderActor @Inject()(
   environment: Environment,
   val runModeConfiguration: Configuration,
   servicesConfig: ServicesConfig,
-  repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext)
+  repository: HtsReminderMongoRepository,
+  emailConnector: EmailConnector)(implicit ec: ExecutionContext, implicit val appConfig: AppConfig)
     extends Actor {
 
   implicit lazy val hc = HeaderCarrier()
@@ -46,16 +49,17 @@ class EmailSenderActor @Inject()(
     context.actorOf(
       Props(classOf[HtsUserUpdateActor], http, environment, runModeConfiguration, servicesConfig, repository, ec),
       "htsUserUpdate-actor")
-  lazy val sendEmailTemplateId = runModeConfiguration.get[String]("microservice.services.email.templateId")
-  lazy val nameParam = runModeConfiguration.get[String]("microservice.services.email.nameParam")
-  lazy val monthParam = runModeConfiguration.get[String]("microservice.services.email.monthParam")
-  lazy val callBackUrlParam = runModeConfiguration.get[String]("microservice.services.email.callBackUrlParam")
+
+  val sendEmailTemplateId = appConfig.sendEmailTemplateId
+  val nameParam = appConfig.nameParam
+  val monthParam = appConfig.monthParam
+  val callBackUrlParam = appConfig.callBackUrlParam
 
   override def receive: Receive = {
 
     case htsUserReminder: HtsUser => {
 
-      val callBackRef = UUID.randomUUID().toString + htsUserReminder.nino
+      val callBackRef = UUID.randomUUID().toString
       htsUserUpdateActor ! UpdateCallBackRef(htsUserReminder, callBackRef)
 
     }
@@ -65,7 +69,10 @@ class EmailSenderActor @Inject()(
       val reminder = successReminder.reminder
 
       val template =
-        HtsReminderTemplate(reminder.email, reminder.firstName + " " + reminder.lastName, reminder.callBackUrlRef)
+        HtsReminderTemplate(
+          reminder.email,
+          reminder.firstName + " " + reminder.lastName,
+          successReminder.callBackRefUrl)
 
       sendReceivedTemplatedEmail(template).map({
         case true => {

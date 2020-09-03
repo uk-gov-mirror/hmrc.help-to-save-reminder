@@ -17,23 +17,20 @@
 package uk.gov.hmrc.helptosavereminder.controllers
 
 import com.google.inject.Inject
-
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.models.{EventsMap, HtsReminderUserDeleted, HtsReminderUserDeletedEvent}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.helptosavereminder.util.JsErrorOps._
-
 import cats.instances.string._
 import cats.syntax.eq._
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -43,23 +40,23 @@ class EmailCallbackController @Inject()(
   servicesConfig: ServicesConfig,
   val cc: MessagesControllerComponents,
   repository: HtsReminderMongoRepository,
-  auditor: HTSAuditor)(implicit ec: ExecutionContext, appConfig: AppConfig)
+  auditor: HTSAuditor,
+  emailConnector: EmailConnector)(implicit ec: ExecutionContext, appConfig: AppConfig)
     extends BackendController(cc) {
 
   def handleCallBack(callBackReference: String): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.map(_.validate[EventsMap]) match {
       case Some(JsSuccess(eventsMap, _)) ⇒ {
         if (eventsMap.events.exists(x => (x.event === "PermanentBounce"))) {
-          val nino = callBackReference.takeRight(9)
-          Logger.info(s"Reminder Callback service called for NINO = $nino")
-          repository.findByNino(nino).flatMap {
+          Logger.info(s"Reminder Callback service called for callBackReference = ${callBackReference}")
+          repository.findByCallBackUrlRef(callBackReference).flatMap {
             case Some(htsUser) =>
               val url = s"${servicesConfig.baseUrl("email")}/hmrc/bounces/${htsUser.email}"
               Logger.debug(s"The URL to request email deletion is $url")
-              repository.deleteHtsUserByCallBack(nino, callBackReference).flatMap {
+              repository.deleteHtsUserByCallBack(htsUser.nino.nino, callBackReference).flatMap {
                 case Left(error) => {
-                  Logger.error("Could not delete from HtsReminder Repository for NINO = ${nino}")
-                  Future.successful(Ok("Error deleting the hts schedule by nino"))
+                  Logger.error(s"Could not delete from HtsReminder Repository for NINO = ${htsUser.nino.nino}")
+                  Future.successful(Ok(s"Error deleting the hts schedule by callBackReference = ${callBackReference}"))
                 }
                 case Right(()) => {
                   val path = routes.HtsUserUpdateController.deleteHtsUser().url
@@ -70,8 +67,8 @@ class EmailCallbackController @Inject()(
                     htsUser.nino.toString)
                   Logger.debug(
                     s"[EmailCallbackController] Email deleted from HtsReminder Repository for user = : ${htsUser.nino}")
-                  http
-                    .DELETE(url, Seq(("Content-Type", "application/json")))
+                  emailConnector
+                    .unBlockEmail(url)
                     .onComplete({
                       case Success(response) =>
                         Logger.debug(s"Email Service successfully unblocked email for Nino = ${htsUser.nino}")

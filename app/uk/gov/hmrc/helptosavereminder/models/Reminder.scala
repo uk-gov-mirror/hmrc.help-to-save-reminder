@@ -43,8 +43,6 @@ case class CancelHtsUserReminder(nino: String)
 
 case class UpdateEmail(nino: Nino, firstName: String, lastName: String, email: String)
 
-case class Schedule(lastExecutedAt: Option[LocalDateTime], nextExecutionAt: LocalDateTime)
-
 object HtsUser {
   implicit val dateFormat: Format[DateTime] = ReactiveMongoFormats.dateTimeFormats
   implicit val idFormat: Format[BSONObjectID] = ReactiveMongoFormats.objectIdFormats

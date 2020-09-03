@@ -29,6 +29,7 @@ import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsReminder
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import uk.gov.hmrc.helptosavereminder.util.JsErrorOps._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -42,7 +43,7 @@ class HtsUserUpdateController @Inject()(
   def update(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
     request.body.asJson.map(_.validate[HtsUser]) match {
       case Some(JsSuccess(htsUser, _)) ⇒ {
-        Logger.debug(s"The HtsUser received from frontend to update is : ${htsUser.nino}")
+        Logger.debug(s"The HtsUser received from frontend to update is : ${htsUser.nino.value}")
         repository.updateReminderUser(htsUser).map {
           case true => {
             val path = routes.HtsUserUpdateController.update().url
