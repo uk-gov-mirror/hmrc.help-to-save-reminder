@@ -68,3 +68,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(scoverageSettings)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(scalafmtOnCompile := true)
+
+import play.sbt.routes.RoutesKeys
+RoutesKeys.routesImport := Seq.empty

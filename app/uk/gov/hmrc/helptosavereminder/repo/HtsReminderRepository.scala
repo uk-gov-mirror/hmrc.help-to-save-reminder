@@ -35,7 +35,7 @@ import reactivemongo.play.json.JSONSerializationPack
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions.getNextSendDate
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 @ImplementedBy(classOf[HtsReminderMongoRepository])
@@ -63,10 +63,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUser]]] = {
 
-    val startTime = System.currentTimeMillis()
-
     val testResult = Try {
-
       val usersToProcess: Future[List[HtsUser]] = proxyCollection
         .find(Json.obj(), Option.empty[JsObject])
         .sort(Json.obj("nino" -> 1))
@@ -77,7 +74,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         case _ => //Log the time
       }
       usersToProcess
-
     }
 
     testResult match {
@@ -93,8 +89,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def updateNextSendDate(nino: String, nextSendDate: LocalDate): Future[Boolean] = {
-
-    val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> nextSendDate))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
@@ -115,8 +109,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Boolean] = {
-
-    val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("email" -> email, "firstName" -> firstName, "lastName" -> lastName))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
@@ -135,8 +127,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean] = {
-
-    val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("callBackUrlRef" -> callBackRef))
 

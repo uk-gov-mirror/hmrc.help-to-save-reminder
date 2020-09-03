@@ -20,7 +20,7 @@ import java.time.{LocalDate, LocalDateTime}
 
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, JsString, Json, Reads, Writes, __}
+import play.api.libs.json.{Format, JsPath, JsString, Json, Reads, Writes}
 import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -93,19 +93,6 @@ object UpdateEmail {
       (JsPath \ "lastName").read[String] and
       (JsPath \ "email").read[String]
   )(UpdateEmail.apply(_, _, _, _))
-
-}
-
-object Schedule {
-
-  implicit val scheduleFormat: Format[Schedule] = Json.format[Schedule]
-
-  implicit val writes: Writes[Schedule] = Writes[Schedule](s ⇒ JsString(s.toString))
-
-  implicit val reads: Reads[Schedule] = (
-    (JsPath \ "lastExecutedAt").readNullable[LocalDateTime] and
-      (JsPath \ "nextExecutionAt").read[LocalDateTime]
-  )(Schedule.apply(_, _))
 
 }
 

@@ -28,6 +28,8 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.{Application, Mode}
 import uk.gov.hmrc.helptosavereminder.actors.ProcessingSupervisor
+import uk.gov.hmrc.helptosavereminder.config.AppConfig
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.helptosavereminder.repo.{HtsReminderMongoRepository, HtsReminderRepository}
 import uk.gov.hmrc.http.HttpClient
@@ -59,6 +61,9 @@ class ReminderSchedulerSpec
     .build()
 
   lazy val applicationConfig = app.injector.instanceOf[Configuration]
+
+  implicit lazy val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
+
   val mockLockRepo = mock[LockRepository]
 
   val httpClient = mock[HttpClient]
@@ -66,6 +71,8 @@ class ReminderSchedulerSpec
   val env = mock[play.api.Environment]
 
   val servicesConfig = mock[ServicesConfig]
+
+  val emailConnector = mock[EmailConnector]
 
   val mongoApi = app.injector.instanceOf[play.modules.reactivemongo.ReactiveMongoComponent]
 
@@ -84,7 +91,7 @@ class ReminderSchedulerSpec
       val emailSenderActorProbe = TestProbe()
 
       val processingSupervisor = TestActorRef(
-        Props(new ProcessingSupervisor(mongoApi, applicationConfig, httpClient, env, servicesConfig) {
+        Props(new ProcessingSupervisor(mongoApi, applicationConfig, httpClient, env, servicesConfig, emailConnector) {
           override lazy val emailSenderActor = emailSenderActorProbe.ref
           override lazy val repository = mockRepository
           override val lockrepo = mockLockRepo

@@ -48,7 +48,7 @@ class EmailCallbackController @Inject()(
     request.body.asJson.map(_.validate[EventsMap]) match {
       case Some(JsSuccess(eventsMap, _)) ⇒ {
         if (eventsMap.events.exists(x => (x.event === "PermanentBounce"))) {
-          Logger.info(s"Reminder Callback service called for callBackReference = ${callBackReference}")
+          Logger.info(s"Reminder Callback service called for callBackReference = $callBackReference")
           repository.findByCallBackUrlRef(callBackReference).flatMap {
             case Some(htsUser) =>
               val url = s"${servicesConfig.baseUrl("email")}/hmrc/bounces/${htsUser.email}"
@@ -56,7 +56,7 @@ class EmailCallbackController @Inject()(
               repository.deleteHtsUserByCallBack(htsUser.nino.nino, callBackReference).flatMap {
                 case Left(error) => {
                   Logger.error(s"Could not delete from HtsReminder Repository for NINO = ${htsUser.nino.nino}")
-                  Future.successful(Ok(s"Error deleting the hts schedule by callBackReference = ${callBackReference}"))
+                  Future.successful(Ok(s"Error deleting the hts schedule by callBackReference = $callBackReference"))
                 }
                 case Right(()) => {
                   val path = routes.HtsUserUpdateController.deleteHtsUser().url
