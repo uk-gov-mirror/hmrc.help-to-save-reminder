@@ -70,11 +70,6 @@ object ActorUtils {
   val FAILURE = "FAILURE"
 }
 
-object ResponseCodeValues {
-  val okResponseCode: Int = 200
-  val acceptedResponseCode: Int = 202
-}
-
 object CancelHtsUserReminder {
 
   implicit val htsUserCancelFormat: Format[CancelHtsUserReminder] = Json.format[CancelHtsUserReminder]

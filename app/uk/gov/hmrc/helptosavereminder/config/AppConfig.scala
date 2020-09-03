@@ -21,7 +21,7 @@ import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class AppConfig @Inject()(val config: Configuration, val environment: Environment, val servicesConfig: ServicesConfig) {
+class AppConfig @Inject()(val config: Configuration, val servicesConfig: ServicesConfig) {
 
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
 

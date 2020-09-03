@@ -28,16 +28,14 @@ import scala.util.Random
 object ReminderGenerator {
   private lazy val rand = new Random()
   private lazy val generator = new Generator(rand)
-  private lazy val ONE_INT = 1
-  private lazy val TWENTY_FIVE_INT = 25
 
   private def nino: Nino = generator.nextNino
   private def email: String = s"mohan.dolla+${UUID.randomUUID()}@digital.hmrc.gov.uk"
   private def firstName: String = "Mohan"
   private def lastName: String = "Dolla"
-  private def daysToReceive = Seq(ONE_INT, TWENTY_FIVE_INT)
+  private def daysToReceive = Seq(1, 25) //scalastyle:ignore magic.number
   private def nextSendDate: LocalDate =
-    getNextSendDate(Seq(ONE_INT, TWENTY_FIVE_INT), LocalDate.now(ZoneId.of("Europe/London")))
+    getNextSendDate(Seq(1, 25), LocalDate.now(ZoneId.of("Europe/London"))) //scalastyle:ignore magic.number
       .getOrElse(LocalDate.now(ZoneId.of("Europe/London")))
   private def callBackUrlRef: String = LocalDateTime.now().toString + nino.value
 
