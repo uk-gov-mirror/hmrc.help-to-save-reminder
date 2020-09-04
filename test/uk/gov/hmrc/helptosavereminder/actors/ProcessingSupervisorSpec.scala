@@ -60,8 +60,6 @@ class ReminderSchedulerSpec
     .in(Mode.Test)
     .build()
 
-  lazy val applicationConfig = app.injector.instanceOf[Configuration]
-
   implicit lazy val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
 
   val mockLockRepo = mock[LockRepository]
@@ -91,7 +89,7 @@ class ReminderSchedulerSpec
       val emailSenderActorProbe = TestProbe()
 
       val processingSupervisor = TestActorRef(
-        Props(new ProcessingSupervisor(mongoApi, applicationConfig, httpClient, env, servicesConfig, emailConnector) {
+        Props(new ProcessingSupervisor(mongoApi, servicesConfig, emailConnector) {
           override lazy val emailSenderActor = emailSenderActorProbe.ref
           override lazy val repository = mockRepository
           override val lockrepo = mockLockRepo

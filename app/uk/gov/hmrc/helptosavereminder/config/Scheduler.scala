@@ -39,16 +39,7 @@ class Scheduler @Inject()(
 )(implicit val ec: ExecutionContext, appconfig: AppConfig) {
 
   lazy val reminderSupervisor = actorSystem.actorOf(
-    Props(
-      classOf[ProcessingSupervisor],
-      mongoApi,
-      config,
-      httpClient,
-      env,
-      servicesConfig,
-      emailConnector,
-      ec,
-      appconfig),
+    Props(classOf[ProcessingSupervisor], mongoApi, servicesConfig, emailConnector, ec, appconfig),
     "reminder-supervisor"
   )
 

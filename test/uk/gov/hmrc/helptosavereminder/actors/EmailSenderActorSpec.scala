@@ -60,9 +60,6 @@ class EmailSenderActorSpec
     .in(Mode.Test)
     .build()
 
-  lazy val applicationConfig = app.injector.instanceOf[Configuration]
-  //val metrics = app.injector.instanceOf[ApplicationMetrics]
-
   implicit lazy val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
 
   val mockLockRepo = mock[LockRepository]
@@ -92,7 +89,7 @@ class EmailSenderActorSpec
       val htsUserUpdateActorProbe = TestProbe()
 
       val emailSenderActor = TestActorRef(
-        Props(new EmailSenderActor(httpClient, env, applicationConfig, servicesConfig, mockRepository, emailConnector) {
+        Props(new EmailSenderActor(servicesConfig, mockRepository, emailConnector) {
           //override lazy val repository = mockRepository
           //override val lockrepo = mockLockRepo
         }),

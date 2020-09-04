@@ -18,22 +18,14 @@ package uk.gov.hmrc.helptosavereminder.actors
 
 import akka.actor._
 import javax.inject.Singleton
-import play.api.{Configuration, Environment, Logger}
+import play.api.Logger
 import uk.gov.hmrc.helptosavereminder.models.{HtsUser, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.http.HttpClient
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class HtsUserUpdateActor(
-  http: HttpClient,
-  environment: Environment,
-  val runModeConfiguration: Configuration,
-  servicesConfig: ServicesConfig,
-  repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext)
-    extends Actor {
+class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends Actor {
 
   override def receive: Receive = {
     case reminder: HtsUser => {

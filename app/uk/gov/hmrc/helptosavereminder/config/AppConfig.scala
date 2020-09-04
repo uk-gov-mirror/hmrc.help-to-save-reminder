@@ -45,4 +45,6 @@ class AppConfig @Inject()(val config: Configuration, val servicesConfig: Service
 
   val defaultRepoLockPeriod: Int = 55
 
+  val repoLockPeriod: Int = config.getOptional[Int](s"mongodb.repoLockPeriod").getOrElse(defaultRepoLockPeriod)
+
 }

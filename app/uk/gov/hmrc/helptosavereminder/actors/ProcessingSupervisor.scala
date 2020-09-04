@@ -35,9 +35,6 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ProcessingSupervisor @Inject()(
   mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
-  config: Configuration,
-  httpClient: HttpClient,
-  env: Environment,
   servicesConfig: ServicesConfig,
   emailConnector: EmailConnector
 )(implicit ec: ExecutionContext, appConfig: AppConfig)
@@ -47,28 +44,18 @@ class ProcessingSupervisor @Inject()(
 
   lazy val emailSenderActor: ActorRef =
     context.actorOf(
-      Props(
-        classOf[EmailSenderActor],
-        httpClient,
-        env,
-        config,
-        servicesConfig,
-        repository,
-        emailConnector,
-        ec,
-        appConfig),
+      Props(classOf[EmailSenderActor], servicesConfig, repository, emailConnector, ec, appConfig),
       "emailSender-actor")
 
   val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
 
-  lazy val isUserScheduleEnabled: Boolean = config.getOptional[Boolean](s"isUserScheduleEnabled").getOrElse(false)
+  lazy val isUserScheduleEnabled: Boolean = appConfig.isUserScheduleEnabled
 
-  lazy val userScheduleCronExpression
-    : String = config.getOptional[String](s"userScheduleCronExpression") map (_.replaceAll("_", " ")) getOrElse ("")
+  lazy val userScheduleCronExpression: String = appConfig.userScheduleCronExpression
 
   val defaultRepoLockPeriod: Int = appConfig.defaultRepoLockPeriod
 
-  lazy val repoLockPeriod: Int = config.getOptional[Int](s"mongodb.repoLockPeriod").getOrElse(defaultRepoLockPeriod)
+  lazy val repoLockPeriod: Int = appConfig.repoLockPeriod
 
   val lockKeeper = new LockKeeper {
 

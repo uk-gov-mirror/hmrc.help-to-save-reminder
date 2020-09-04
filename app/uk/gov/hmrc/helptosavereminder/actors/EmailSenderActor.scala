@@ -22,23 +22,20 @@ import java.util.UUID
 import akka.actor._
 import com.google.inject.Inject
 import javax.inject.Singleton
-import play.api.{Configuration, Environment, Logger}
+import play.api.{Environment, Logger}
 
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EmailSenderActor @Inject()(
-  http: HttpClient,
-  environment: Environment,
-  val runModeConfiguration: Configuration,
   servicesConfig: ServicesConfig,
   repository: HtsReminderMongoRepository,
   emailConnector: EmailConnector)(implicit ec: ExecutionContext, implicit val appConfig: AppConfig)
@@ -46,9 +43,7 @@ class EmailSenderActor @Inject()(
 
   implicit lazy val hc = HeaderCarrier()
   lazy val htsUserUpdateActor: ActorRef =
-    context.actorOf(
-      Props(classOf[HtsUserUpdateActor], http, environment, runModeConfiguration, servicesConfig, repository, ec),
-      "htsUserUpdate-actor")
+    context.actorOf(Props(classOf[HtsUserUpdateActor], repository, ec), "htsUserUpdate-actor")
 
   val sendEmailTemplateId = appConfig.sendEmailTemplateId
   val nameParam = appConfig.nameParam
