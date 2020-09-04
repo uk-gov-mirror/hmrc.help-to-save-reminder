@@ -23,6 +23,8 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import cats.instances.int._
 import cats.syntax.eq._
 
+import play.api.http.Status.{ACCEPTED, OK}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -33,7 +35,7 @@ class EmailConnector @Inject()(http: HttpClient) {
     ec: ExecutionContext): Future[Boolean] =
     http.POST(url, request, Seq(("Content-Type", "application/json"))) map { response =>
       response.status match {
-        case 202 => //scalastyle:ignore magic.number
+        case ACCEPTED =>
           Logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
         case _ => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
       }
@@ -42,7 +44,7 @@ class EmailConnector @Inject()(http: HttpClient) {
   def unBlockEmail(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     http.DELETE(url, Seq(("Content-Type", "application/json"))) map { response =>
       response.status match {
-        case x if x === 200 || x === 202 => //scalastyle:ignore magic.number
+        case x if x === OK || x === ACCEPTED =>
           Logger.debug(s"Email is successfully unblocked: ${response.body}"); true
         case _ =>
           Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false

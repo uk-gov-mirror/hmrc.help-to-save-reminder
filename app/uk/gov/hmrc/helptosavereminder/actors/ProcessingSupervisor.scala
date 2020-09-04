@@ -66,7 +66,7 @@ class ProcessingSupervisor @Inject()(
   lazy val userScheduleCronExpression
     : String = config.getOptional[String](s"userScheduleCronExpression") map (_.replaceAll("_", " ")) getOrElse ("")
 
-  val defaultRepoLockPeriod: Int = 55
+  val defaultRepoLockPeriod: Int = config.get[Int](s"defaultRepoLockPeriod")
 
   lazy val repoLockPeriod: Int = config.getOptional[Int](s"mongodb.repoLockPeriod").getOrElse(defaultRepoLockPeriod)
 

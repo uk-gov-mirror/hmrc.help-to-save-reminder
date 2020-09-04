@@ -43,4 +43,6 @@ class AppConfig @Inject()(val config: Configuration, val servicesConfig: Service
 
   val userScheduleCronExpression: String = config.getOptional[String](s"userScheduleCronExpression").getOrElse("")
 
+  val defaultRepoLockPeriod: Int = 55
+
 }
