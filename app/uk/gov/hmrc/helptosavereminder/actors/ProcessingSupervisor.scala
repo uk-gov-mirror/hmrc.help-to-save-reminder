@@ -118,6 +118,8 @@ class ProcessingSupervisor @Inject()(
 
     case START => {
 
+      Logger.debug("START message received by ProcessingSupervisor")
+
       lockKeeper
         .tryLock {
 
@@ -148,6 +150,8 @@ class ProcessingSupervisor @Inject()(
             Logger.info(s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock.")
           }
         }
+
+      Logger.debug("Exiting START message processor by ProcessingSupervisor")
 
     }
   }
