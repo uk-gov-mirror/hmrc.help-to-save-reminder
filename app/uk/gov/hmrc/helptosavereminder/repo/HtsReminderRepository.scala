@@ -63,6 +63,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUser]]] = {
 
+    Logger.debug("findHtsUsersToProcess is about to fetch records")
     val testResult = Try {
       val usersToProcess: Future[List[HtsUser]] = proxyCollection
         .find(Json.obj(), Option.empty[JsObject])
