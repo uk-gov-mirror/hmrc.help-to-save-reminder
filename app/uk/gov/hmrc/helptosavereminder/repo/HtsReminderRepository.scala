@@ -79,10 +79,14 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
     testResult match {
       case Success(usersList) => {
-        usersList.map(x => Some(x))
+        usersList.map(x => {
+          Logger.debug(s"No of user scheduled fetched = ${x.length}")
+          Some(x)
+        })
       }
 
       case Failure(f) => {
+        Logger.error(s"findHtsUsersToProcess : Exception occurred while fetching users $f ::  ${f.fillInStackTrace()}")
         Future.successful(None)
       }
     }
