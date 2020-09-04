@@ -17,16 +17,34 @@
 package uk.gov.hmrc.helptosavereminder.config
 
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class AppConfig @Inject()(val config: Configuration, val servicesConfig: ServicesConfig) {
 
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
 
   val appName: String = config.get[String]("appName")
 
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
+
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
+
+  val sendEmailTemplateId: String = config.get[String]("microservice.services.email.templateId")
+
+  val nameParam: String = config.get[String]("microservice.services.email.nameParam")
+
+  val monthParam: String = config.get[String]("microservice.services.email.monthParam")
+
+  val callBackUrlParam: String = config.get[String]("microservice.services.email.callBackUrlParam")
+
+  val isUserScheduleEnabled: Boolean = config.getOptional[Boolean](s"isUserScheduleEnabled").getOrElse(false)
+
+  val userScheduleCronExpression: String = config.getOptional[String](s"userScheduleCronExpression").getOrElse("")
+
+  val defaultRepoLockPeriod: Int = 55
+
+  val repoLockPeriod: Int = config.getOptional[Int](s"mongodb.repoLockPeriod").getOrElse(defaultRepoLockPeriod)
+
 }

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.helptosavereminder.controllers
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -35,12 +36,14 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.helptosavereminder.models.{EventItem, EventsMap, HtsUser}
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
-import uk.gov.hmrc.http.{HttpClient, HttpResponse}
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.mongo.MongoSpecSupport
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.test.FakeRequest
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -75,10 +78,12 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
   private val serviceConfig = new ServicesConfig(configuration)
   val mockHttp: HttpClient = mock[HttpClient]
   lazy val mockRepository = mock[HtsReminderMongoRepository]
+  lazy val mockEmailConnector = mock[EmailConnector]
   implicit val auditor: HTSAuditor = mock[HTSAuditor]
   lazy val mcc: MessagesControllerComponents = app.injector.instanceOf[MessagesControllerComponents]
   implicit lazy val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
-  lazy val controller = new EmailCallbackController(mockHttp, serviceConfig, mcc, mockRepository, auditor)
+  lazy val controller =
+    new EmailCallbackController(mockHttp, serviceConfig, mcc, mockRepository, auditor, mockEmailConnector)
 
   val eventItem1: EventItem = EventItem("PermanentBounce", LocalDateTime.now())
   val eventItem2: EventItem = EventItem("Opened", LocalDateTime.now())
@@ -93,8 +98,9 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
     "be able to increment a bounce count and" should {
       "respond with a 200 when all is good" in {
         val fakeRequest = FakeRequest("POST", "/").withJsonBody(Json.toJson(eventsMapWithPermanentBounce))
+        val callBackUrlRef = UUID.randomUUID().toString
         val htsReminderUser = (ReminderGenerator.nextReminder)
-          .copy(nino = Nino("AE345678D"), callBackUrlRef = LocalDateTime.now().toString() + "AE345678D")
+          .copy(nino = Nino("AE345678D"), callBackUrlRef = callBackUrlRef)
         val result1: Future[Boolean] = htsReminderMongoRepository.updateReminderUser(htsReminderUser)
 
         await(result1) match {
@@ -102,12 +108,37 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
             x shouldBe true
           }
         }
-        val callBackReferences = "1580214107339AE345678D"
-        when(mockRepository.findByNino(any())).thenReturn(Some(htsReminderUser))
-        when(mockHttp.DELETE[HttpResponse](any(), any())(any(), any(), any()))
-          .thenReturn(Future.successful(HttpResponse(200)))
+        when(mockRepository.findByCallBackUrlRef(any())).thenReturn(Some(htsReminderUser))
+        when(mockEmailConnector.unBlockEmail(any())(any(), any()))
+          .thenReturn(Future.successful(true))
         when(mockRepository.deleteHtsUserByCallBack(any(), any())).thenReturn(Future.successful(Right()))
-        val result = controller.handleCallBack(callBackReferences).apply(fakeRequest)
+        val result = controller.handleCallBack(callBackUrlRef).apply(fakeRequest)
+
+        await(result) match {
+          case x => {
+            status(x) shouldBe 200
+          }
+        }
+
+      }
+
+      "respond with a 200 when its unable to block email" in {
+        val fakeRequest = FakeRequest("POST", "/").withJsonBody(Json.toJson(eventsMapWithPermanentBounce))
+        val callBackUrlRef = UUID.randomUUID().toString
+        val htsReminderUser = (ReminderGenerator.nextReminder)
+          .copy(nino = Nino("AE345678D"), callBackUrlRef = callBackUrlRef)
+        val result1: Future[Boolean] = htsReminderMongoRepository.updateReminderUser(htsReminderUser)
+
+        await(result1) match {
+          case x => {
+            x shouldBe true
+          }
+        }
+        when(mockRepository.findByCallBackUrlRef(any())).thenReturn(Some(htsReminderUser))
+        when(mockEmailConnector.unBlockEmail(any())(any(), any()))
+          .thenReturn(Future.successful(false))
+        when(mockRepository.deleteHtsUserByCallBack(any(), any())).thenReturn(Future.successful(Right()))
+        val result = controller.handleCallBack(callBackUrlRef).apply(fakeRequest)
 
         await(result) match {
           case x => {
@@ -120,8 +151,9 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
     "fail to update the DB" should {
       "respond with a 200 assuming all is good" in {
         val fakeRequest = FakeRequest("POST", "/").withJsonBody(Json.toJson(eventsMapWithPermanentBounce))
+        val callBackReferences = UUID.randomUUID().toString
         val htsReminderUser = (ReminderGenerator.nextReminder)
-          .copy(nino = Nino("AE345678D"), callBackUrlRef = LocalDateTime.now().toString() + "AE345678D")
+          .copy(nino = Nino("AE345678D"), callBackUrlRef = callBackReferences)
         val result1: Future[Boolean] = htsReminderMongoRepository.updateReminderUser(htsReminderUser)
 
         await(result1) match {
@@ -129,9 +161,8 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
             x shouldBe true
           }
         }
-        val callBackReferences = "1580214107339AE345678D"
-        when(mockRepository.findByNino(any())).thenReturn(Some(htsReminderUser))
-        when(mockHttp.DELETE[HttpResponse](any(), any())(any(), any(), any()))
+        when(mockRepository.findByCallBackUrlRef(any())).thenReturn(Some(htsReminderUser))
+        when(mockEmailConnector.unBlockEmail(any())(any(), any()))
           .thenReturn(Future.failed(new Exception("Exception failure")))
         when(mockRepository.deleteHtsUserByCallBack(any(), any())).thenReturn(Future.successful(Right()))
         val result = controller.handleCallBack(callBackReferences).apply(fakeRequest)
@@ -148,7 +179,7 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
 
   "respond with a 200 containing FAILURE string if Nino does not exists or update fails" in {
 
-    val callBackReferences = "1580214107339AE456789B"
+    val callBackReferences = UUID.randomUUID().toString
 
     val htsReminderUser = (ReminderGenerator.nextReminder)
       .copy(nino = Nino("AE456789B"), callBackUrlRef = callBackReferences)
@@ -163,7 +194,7 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
       }
     }
 
-    when(mockRepository.findByNino(any())).thenReturn(Some(htsReminderUser))
+    when(mockRepository.findByCallBackUrlRef(any())).thenReturn(Some(htsReminderUser))
     when(mockRepository.deleteHtsUserByCallBack(any(), any()))
       .thenReturn(Future.successful(Left("Error deleting")))
     when(mockHttp.DELETE[HttpResponse](any(), any())(any(), any(), any()))

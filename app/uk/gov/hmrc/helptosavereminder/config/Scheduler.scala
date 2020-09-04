@@ -22,6 +22,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.http.HttpClient
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.helptosavereminder.actors.ProcessingSupervisor
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
 
 import scala.concurrent.ExecutionContext
@@ -33,11 +34,12 @@ class Scheduler @Inject()(
   env: Environment,
   mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
   config: Configuration,
-  servicesConfig: ServicesConfig
-)(implicit val ec: ExecutionContext) {
+  servicesConfig: ServicesConfig,
+  emailConnector: EmailConnector
+)(implicit val ec: ExecutionContext, appconfig: AppConfig) {
 
   lazy val reminderSupervisor = actorSystem.actorOf(
-    Props(classOf[ProcessingSupervisor], mongoApi, config, httpClient, env, servicesConfig, ec),
+    Props(classOf[ProcessingSupervisor], mongoApi, servicesConfig, emailConnector, ec, appconfig),
     "reminder-supervisor"
   )
 

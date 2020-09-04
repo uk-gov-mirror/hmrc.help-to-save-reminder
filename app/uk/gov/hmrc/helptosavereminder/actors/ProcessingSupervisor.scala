@@ -27,35 +27,35 @@ import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
-
 import org.quartz.CronExpression
+import uk.gov.hmrc.helptosavereminder.config.AppConfig
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ProcessingSupervisor @Inject()(
   mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
-  config: Configuration,
-  httpClient: HttpClient,
-  env: Environment,
-  servicesConfig: ServicesConfig
-)(implicit ec: ExecutionContext)
+  servicesConfig: ServicesConfig,
+  emailConnector: EmailConnector
+)(implicit ec: ExecutionContext, appConfig: AppConfig)
     extends Actor {
 
   lazy val repository = new HtsReminderMongoRepository(mongoApi)
 
   lazy val emailSenderActor: ActorRef =
     context.actorOf(
-      Props(classOf[EmailSenderActor], httpClient, env, config, servicesConfig, repository, ec),
+      Props(classOf[EmailSenderActor], servicesConfig, repository, emailConnector, ec, appConfig),
       "emailSender-actor")
 
   val lockrepo = LockMongoRepository(mongoApi.mongoConnector.db)
 
-  lazy val isUserScheduleEnabled: Boolean = config.getOptional[Boolean](s"isUserScheduleEnabled").getOrElse(false)
+  lazy val isUserScheduleEnabled: Boolean = appConfig.isUserScheduleEnabled
 
-  lazy val userScheduleCronExpression
-    : String = config.getOptional[String](s"userScheduleCronExpression") map (_.replaceAll("_", " ")) getOrElse ("")
+  lazy val userScheduleCronExpression: String = appConfig.userScheduleCronExpression
 
-  lazy val repoLockPeriod: Int = config.getOptional[Int](s"mongodb.repoLockPeriod").getOrElse(55)
+  val defaultRepoLockPeriod: Int = appConfig.defaultRepoLockPeriod
+
+  lazy val repoLockPeriod: Int = appConfig.repoLockPeriod
 
   val lockKeeper = new LockKeeper {
 
@@ -71,8 +71,12 @@ class ProcessingSupervisor @Inject()(
         .lock(lockId, serverId, forceLockReleaseAfter)
         .flatMap { acquired =>
           if (acquired) {
-            body.map { case x => Some(x) }
-          } else Future.successful(None)
+            body.map {
+              case x => Some(x)
+            }
+          } else {
+            Future.successful(None)
+          }
         }
         .recoverWith { case ex => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
     // $COVERAGE-ON$
@@ -107,10 +111,7 @@ class ProcessingSupervisor @Inject()(
             s"UserScheduleJob cannot be Scheduled due to invalid cronExpression supplied in configuration : $userScheduleCronExpression")
 
         case _ =>
-          Logger.warn(s"UserScheduleJob cannot Scheduled due to invalid cronExpression : $userScheduleCronExpression")
-
-        case _ =>
-          Logger.warn(s"UserScheduleJob cannot Scheduled. Please check configuration parameters: " +
+          Logger.warn(s"UserScheduleJob cannot be Scheduled. Please check configuration parameters: " +
             s"userScheduleCronExpression = $userScheduleCronExpression and isUserScheduleEnabled = $isUserScheduleEnabled")
       }
     }

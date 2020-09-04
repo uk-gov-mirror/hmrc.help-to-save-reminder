@@ -35,7 +35,7 @@ import reactivemongo.play.json.JSONSerializationPack
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions.getNextSendDate
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 @ImplementedBy(classOf[HtsReminderMongoRepository])
@@ -45,6 +45,7 @@ trait HtsReminderRepository {
   def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean]
   def updateReminderUser(htsReminder: HtsUser): Future[Boolean]
   def findByNino(nino: String): Future[Option[HtsUser]]
+  def findByCallBackUrlRef(callBackUrlRef: String): Future[Option[HtsUser]]
   def deleteHtsUser(nino: String): Future[Either[String, Unit]]
   def deleteHtsUserByCallBack(nino: String, callBackUrlRef: String): Future[Either[String, Unit]]
   def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Boolean]
@@ -62,10 +63,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUser]]] = {
 
-    val startTime = System.currentTimeMillis()
-
     val testResult = Try {
-
       val usersToProcess: Future[List[HtsUser]] = proxyCollection
         .find(Json.obj(), Option.empty[JsObject])
         .sort(Json.obj("nino" -> 1))
@@ -76,7 +74,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         case _ => //Log the time
       }
       usersToProcess
-
     }
 
     testResult match {
@@ -92,8 +89,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def updateNextSendDate(nino: String, nextSendDate: LocalDate): Future[Boolean] = {
-
-    val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> nextSendDate))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
@@ -114,8 +109,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Boolean] = {
-
-    val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("email" -> email, "firstName" -> firstName, "lastName" -> lastName))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
@@ -134,8 +127,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def updateCallBackRef(nino: String, callBackRef: String): Future[Boolean] = {
-
-    val startTime = System.currentTimeMillis()
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("callBackUrlRef" -> callBackRef))
 
@@ -253,8 +244,30 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     }
   }
 
+  override def findByCallBackUrlRef(callBackUrlRef: String): Future[Option[HtsUser]] = {
+
+    val tryResult = Try {
+      proxyCollection
+        .find(Json.obj("callBackUrlRef" -> callBackUrlRef), Option.empty[JsObject])
+        .cursor[HtsUser](ReadPreference.primary)
+        .collect[List](maxDocs = 1, err = Cursor.FailOnError[List[HtsUser]]())
+    }
+
+    tryResult match {
+      case Success(s) => {
+        s.map { x =>
+          x.headOption
+        }
+      }
+      case Failure(f) => {
+        Future.successful(None)
+      }
+    }
+  }
+
   override def indexes: Seq[Index] = Seq(
-    Index(Seq("nino" -> IndexType.Ascending), Some("nino"), background = true)
+    Index(Seq("nino"           -> IndexType.Ascending), Some("nino"), background = true),
+    Index(Seq("callBackUrlRef" -> IndexType.Ascending), Some("callBackUrlRef"), background = true)
   )
 
 }
