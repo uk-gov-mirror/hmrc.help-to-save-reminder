@@ -19,7 +19,7 @@ package uk.gov.hmrc.helptosavereminder.actors
 import akka.actor._
 import javax.inject.Singleton
 import play.api.Logger
-import uk.gov.hmrc.helptosavereminder.models.{HtsUser, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsUserSchedule, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 
 import scala.concurrent.ExecutionContext
@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext
 class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends Actor {
 
   override def receive: Receive = {
-    case reminder: HtsUser => {
+    case reminder: HtsUserSchedule => {
       repository.updateNextSendDate(reminder.nino.value, reminder.nextSendDate).map {
         case true => {
           Logger.debug(s"Updated the User nextSendDate for ${reminder.nino}")

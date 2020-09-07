@@ -25,7 +25,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.helptosavereminder.models.HtsUser
+import uk.gov.hmrc.helptosavereminder.models.HtsUserSchedule
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoSpecSupport
@@ -77,7 +77,7 @@ class HtsReminderRepositorySpec
 
       val reminderValue = ReminderGenerator.nextReminder
 
-      val usersToProcess: Future[Option[List[HtsUser]]] = htsReminderMongoRepository.findHtsUsersToProcess()
+      val usersToProcess: Future[Option[List[HtsUserSchedule]]] = htsReminderMongoRepository.findHtsUsersToProcess()
 
       await(usersToProcess) match {
         case Some(x) => x.size shouldBe >=(1)
@@ -171,7 +171,7 @@ class HtsReminderRepositorySpec
 
       result onComplete ({
         case Success(x) => {
-          val htsUserOption: Option[HtsUser] =
+          val htsUserOption: Option[HtsUserSchedule] =
             htsReminderMongoRepository.findByNino("SK798383D")
 
           await(htsUserOption).get.nino.value shouldBe "SK798383D"
@@ -193,7 +193,7 @@ class HtsReminderRepositorySpec
 
       result onComplete ({
         case Success(x) => {
-          val htsUserOption: Option[HtsUser] =
+          val htsUserOption: Option[HtsUserSchedule] =
             htsReminderMongoRepository.findByCallBackUrlRef(callBackRef)
 
           await(htsUserOption).get.nino.value shouldBe "SK798383D"

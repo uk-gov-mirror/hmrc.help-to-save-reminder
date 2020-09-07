@@ -49,23 +49,23 @@ class EmailCallbackController @Inject()(
         if (eventsMap.events.exists(x => (x.event === "PermanentBounce"))) {
           Logger.info(s"Reminder Callback service called for callBackReference = $callBackReference")
           repository.findByCallBackUrlRef(callBackReference).flatMap {
-            case Some(htsUser) =>
-              val url = s"${servicesConfig.baseUrl("email")}/hmrc/bounces/${htsUser.email}"
+            case Some(htsUserSchedule) =>
+              val url = s"${servicesConfig.baseUrl("email")}/hmrc/bounces/${htsUserSchedule.email}"
               Logger.debug(s"The URL to request email deletion is $url")
-              repository.deleteHtsUserByCallBack(htsUser.nino.value, callBackReference).flatMap {
+              repository.deleteHtsUserByCallBack(htsUserSchedule.nino.value, callBackReference).flatMap {
                 case Left(error) => {
-                  Logger.error(s"Could not delete from HtsReminder Repository for NINO = ${htsUser.nino.value}")
+                  Logger.error(s"Could not delete from HtsReminder Repository for NINO = ${htsUserSchedule.nino.value}")
                   Future.successful(Ok(s"Error deleting the hts schedule by callBackReference = $callBackReference"))
                 }
                 case Right(()) => {
                   val path = routes.HtsUserUpdateController.deleteHtsUser().url
                   auditor.sendEvent(
                     HtsReminderUserDeletedEvent(
-                      HtsReminderUserDeleted(htsUser.nino.toString, Json.toJson(htsUser)),
+                      HtsReminderUserDeleted(htsUserSchedule.nino.toString, Json.toJson(htsUserSchedule)),
                       path),
-                    htsUser.nino.toString)
+                    htsUserSchedule.nino.toString)
                   Logger.debug(
-                    s"[EmailCallbackController] Email deleted from HtsReminder Repository for user = : ${htsUser.nino}")
+                    s"[EmailCallbackController] Email deleted from HtsReminder Repository for user = : ${htsUserSchedule.nino}")
 
                   emailConnector
                     .unBlockEmail(url) map { response =>
