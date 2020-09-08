@@ -118,7 +118,7 @@ class ProcessingSupervisor @Inject()(
 
     case START => {
 
-      Logger.debug("START message received by ProcessingSupervisor")
+      Logger.debug(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = ${repoLockPeriod}" )
 
       lockKeeper
         .tryLock {
