@@ -34,11 +34,11 @@ import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ProcessingSupervisor @Inject()(
-                                      mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
-                                      servicesConfig: ServicesConfig,
-                                      emailConnector: EmailConnector
-                                    )(implicit ec: ExecutionContext, appConfig: AppConfig)
-  extends Actor {
+  mongoApi: play.modules.reactivemongo.ReactiveMongoComponent,
+  servicesConfig: ServicesConfig,
+  emailConnector: EmailConnector
+)(implicit ec: ExecutionContext, appConfig: AppConfig)
+    extends Actor {
 
   lazy val repository = new HtsReminderMongoRepository(mongoApi)
 
@@ -118,7 +118,7 @@ class ProcessingSupervisor @Inject()(
 
     case START => {
 
-      Logger.debug(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = ${repoLockPeriod}" )
+      Logger.debug(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = $repoLockPeriod")
 
       lockKeeper
         .tryLock {
