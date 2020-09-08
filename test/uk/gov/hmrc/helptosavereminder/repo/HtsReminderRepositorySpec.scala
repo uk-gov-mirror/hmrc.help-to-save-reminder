@@ -70,6 +70,19 @@ class HtsReminderRepositorySpec
       await(nextSendDate) shouldBe true
 
     }
+
+    "should not update the userSchedule if daysToReceive field is Empty" in {
+
+      val reminderValue = ReminderGenerator.nextReminder
+
+      val result: Future[Boolean] =
+        htsReminderMongoRepository.updateReminderUser(reminderValue.copy(daysToReceive = Seq.empty))
+
+      await(result) match {
+        case x => x shouldBe false
+      }
+
+    }
   }
 
   "Calls to findHtsUsersToProcess a HtsReminder repository" should {
