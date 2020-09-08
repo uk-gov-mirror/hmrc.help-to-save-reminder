@@ -25,18 +25,15 @@ Abbreviations
 -------------
 | Key | Meaning |
 |:----------------:|-------------|
-|DES| Data Exchange Service (Message Bus) |
-|HoD| Head Of Duty, HMRC legacy application |
-|HtS| Help To Save |
+|HoD| Head of Duty, HMRC legacy application |
+|HtS| Help to Save |
 |MDTP| HMRC Multi-channel Digital Tax Platform |
-|NS&I| National Savings & Investments |
-|UC| Universal Credit|
-|WTC| Working Tax Credit|
+|ns&i| National Savings & Investments |
 
 Product Background
 ------------------
-The Prime Minister set out the government’s intention to bring forward, a new Help to Save
-(‘HtS’) scheme to encourage people on low incomes to build up a “rainy day” fund.
+The Prime Minister set out the government’s intention to bring forward a new Help to Save
+(‘HtS’) scheme, to encourage people on low incomes to build up a “rainy day” fund.
 
 Help to Save will target working families on the lowest incomes to help them build up their
 savings. The scheme will be open to 3.5 million adults in receipt of Universal Credit with
@@ -47,20 +44,19 @@ A customer can deposit up to a maximum of £50 per month in the account. It will
 providing a 50% government bonus on the highest amount saved into a HtS account. The
 bonus is paid after two years with an option to save for a further two years, meaning that people
 can save up to £2,400 and benefit from government bonuses worth up to £1,200. Savers will be
-able to use the funds in any way they wish. The published implementation date for this is Q2/2018,
-but the project will have a controlled go-live with a pilot population in Q1/2018.
+able to use the funds in any way they wish.
 
 Batch Processing
 ------------------
-One of the main aims of this service is to process htsUser Schedules to send reminder emails to the registered Hts users
-The user schedules are feteched based on the 'nextSendDate' field. Those schedules that has 'nextSendDate' as the current day 
-or the day in the past will be fecthed for sending the reminder emails. 
+The main aim of this service is to process HtS user schedules to send reminder emails to the registered HtS users
+The user schedules are fetched based on the 'nextSendDate' field. Those schedules that have 'nextSendDate' as the current day 
+or the day in the past will be fetched, for sending the reminder emails. 
 
-Both the registered and the new Hts users are given an option to opt in or opt out for this reminders service. Those who want to
-opt in will be given a choice to receive the reminder email on 1st, 25th or both the days of the month. Users are also given
+Both already registered and the newly registering HtS users are given an option to opt in or opt out of this reminders service. Those who
+opt in will be given a choice to receive the reminder email on 1st, 25th or both those days of the month. Users are also given
 an option to cancel their subscription to the reminders service any time. 
 
-The Scheduler is based on Quartz Scheduler and the actual schedule times are managed by Cron expression that can be defined to run at 
+The scheduler is based on Quartz Scheduler and the actual schedule times are managed by Quartz Cron expression that can be defined to run at 
 a particular date and time of any day of the week, month or year.
 
 
@@ -73,7 +69,7 @@ The suite of repos connected with this Product are as follows:
 |:-----|:------------|
 | [help-to-save-reminder](https://github.com/hmrc/help-to-save-reminder) 
 | [help-to-save-frontend](https://github.com/hmrc/help-to-save-frontend)                       | handles requests from browser for public digital journey |
-| [help-to-save](https://github.com/hmrc/help-to-save)                                         | handles backend logic for HTS |
+| [help-to-save](https://github.com/hmrc/help-to-save)                                         | handles backend logic for HtS |
 | [help-to-save-proxy](https://github.com/hmrc/help-to-save-proxy)                             | handles requests to services outside of MDTP |
 | [help-to-save-api](https://github.com/hmrc/help-to-save-api)                                 | handles requests from third parties outside of MDTP |
 | [help-to-save-stride-frontend](https://github.com/hmrc/help-to-save-stride-frontend)         | handles requests from browser for internal call centre journey |
@@ -131,14 +127,6 @@ This diagram shows a general picture of how the different services are connected
 
 
 
-Private Beta User Restriction
-----------------------------
-
-During Private Beta, when a HtS Account is created, per-day-count and total-count counters are incremented. After the customer’s Eligibility
-Check, the counters are checked to ensure that the cap’s haven’t been reached. If they have, they are shuttered, otherwise they may continue
-to create a HtS account.
-
-
 Running and Testing
 ===================
 
@@ -157,11 +145,11 @@ Endpoints
 
 | Path                              | Method | Description |
 |:-----------------------------     |:-------|:------------|
-| /gethtsuser/:nino                 | GET  | Fetches htsUser Schedule for a NINO or 404 (NOT FOUND) if there is no account for that NINO  |
-| /update-htsuser-entity            | POST | Checks and updates htsUser Schedule and creates new schedule if no userSchedule is found for that NINO |
-| /delete-htsuser-entity            | POST | Deletes an htsUser Schedule from the data repo |
-| /update-htsuser-email             | POST | Updates email address of htsUser Schedule for that NINO |
-| /bouncedEmail/:callbackreference  | POST | Deletes htsUser Schedule if the request contains 'PermanentBounce' event and logs request info for other types of events |
+| /gethtsuser/:nino                 | GET  | Fetches schedule for a NINO or 404 (NOT FOUND) if there is no account for that NINO  |
+| /update-htsuser-entity            | POST | Checks and updates schedule and creates new schedule if none is found for that NINO |
+| /delete-htsuser-entity            | POST | Deletes an schedule from the data repo |
+| /update-htsuser-email             | POST | Updates email address in schedule for that NINO |
+| /bouncedEmail/:callbackreference  | POST | Deletes schedule if the request contains 'PermanentBounce' event and logs request info for other types of events |
 
 
 License 
