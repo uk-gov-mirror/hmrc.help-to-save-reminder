@@ -21,7 +21,7 @@ import akka.testkit._
 import com.kenshoo.play.metrics.PlayModule
 import org.mockito.ArgumentCaptor
 import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, SendTemplatedEmailRequest, UpdateCallBackSuccess}
-import play.api.{Application, Configuration, Mode}
+import play.api.{Application, Mode}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll

@@ -20,7 +20,7 @@ import java.time.{LocalDate, LocalDateTime, ZoneId}
 import java.util.UUID
 
 import uk.gov.hmrc.domain.{Generator, Nino}
-import uk.gov.hmrc.helptosavereminder.models.HtsUser
+import uk.gov.hmrc.helptosavereminder.models.HtsUserSchedule
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions.getNextSendDate
 
 import scala.util.Random
@@ -39,7 +39,7 @@ object ReminderGenerator {
       .getOrElse(LocalDate.now(ZoneId.of("Europe/London")))
   private def callBackUrlRef: String = LocalDateTime.now().toString + nino.value
 
-  def nextReminder: HtsUser =
-    HtsUser(nino, email, firstName, lastName, true, daysToReceive, nextSendDate, callBackUrlRef)
+  def nextReminder: HtsUserSchedule =
+    HtsUserSchedule(nino, email, firstName, lastName, true, daysToReceive, nextSendDate, callBackUrlRef)
 
 }

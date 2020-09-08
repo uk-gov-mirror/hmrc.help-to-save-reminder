@@ -41,7 +41,7 @@ import uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import play.api.test._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HTSEvent, HtsReminderUserDeleted, HtsReminderUserDeletedEvent, HtsReminderUserUpdated, HtsReminderUserUpdatedEvent, HtsUser, UpdateEmail}
+import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HTSEvent, HtsReminderUserDeleted, HtsReminderUserDeletedEvent, HtsReminderUserUpdated, HtsReminderUserUpdatedEvent, HtsUserSchedule, UpdateEmail}
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{nino => v2Nino}
@@ -73,9 +73,9 @@ class HtsUserUpdateControllerSpec extends AuthSupport with TestSupport {
       .expects(event, nino, *)
       .returning(())
 
-  def mockUpdateRepository(htsUser: HtsUser)(result: Boolean): Unit =
+  def mockUpdateRepository(htsUser: HtsUserSchedule)(result: Boolean): Unit =
     (mockRepository
-      .updateReminderUser(_: HtsUser))
+      .updateReminderUser(_: HtsUserSchedule))
       .expects(htsUser)
       .returning(result)
 
@@ -85,7 +85,7 @@ class HtsUserUpdateControllerSpec extends AuthSupport with TestSupport {
       .expects(nino)
       .returning(result)
 
-  def mockGetRepository(nino: String)(result: Option[HtsUser]): Unit =
+  def mockGetRepository(nino: String)(result: Option[HtsUserSchedule]): Unit =
     (mockRepository
       .findByNino(_: String))
       .expects(nino)

@@ -34,7 +34,7 @@ import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.helptosavereminder.models.{EventItem, EventsMap, HtsUser}
+import uk.gov.hmrc.helptosavereminder.models.{EventItem, EventsMap, HtsUserSchedule}
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.mongo.MongoSpecSupport

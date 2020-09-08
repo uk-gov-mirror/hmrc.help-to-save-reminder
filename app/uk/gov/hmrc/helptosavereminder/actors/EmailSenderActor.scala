@@ -22,11 +22,10 @@ import java.util.UUID
 import akka.actor._
 import com.google.inject.Inject
 import javax.inject.Singleton
-import play.api.{Environment, Logger}
-
+import play.api.Logger
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
-import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUser, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUserSchedule, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
 import uk.gov.hmrc.http.HeaderCarrier
@@ -52,7 +51,7 @@ class EmailSenderActor @Inject()(
 
   override def receive: Receive = {
 
-    case htsUserReminder: HtsUser => {
+    case htsUserReminder: HtsUserSchedule => {
 
       val callBackRef = UUID.randomUUID().toString
       htsUserUpdateActor ! UpdateCallBackRef(htsUserReminder, callBackRef)
