@@ -85,7 +85,6 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     }
   }
 
-
   override def updateNextSendDate(nino: String, nextSendDate: LocalDate): Future[Boolean] = {
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("nextSendDate" -> nextSendDate))

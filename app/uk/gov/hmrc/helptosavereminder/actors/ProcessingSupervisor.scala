@@ -28,6 +28,7 @@ import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 import org.quartz.CronExpression
+import play.api.libs.json.Json
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 
@@ -123,7 +124,7 @@ class ProcessingSupervisor @Inject()(
       lockKeeper
         .tryLock {
 
-          repository.findHtsUsersToProcess().map {
+          /*repository.findHtsUsersToProcess().map {
             case Some(requests) if requests.nonEmpty => {
               Logger.debug(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
 
@@ -137,6 +138,14 @@ class ProcessingSupervisor @Inject()(
             case _ => {
               Logger.debug(s"[ProcessingSupervisor][receive] no requests pending")
             }
+          }*/
+
+          repository.findByNino("EL071001C").map {
+            case Some(htsUser) => {
+              Logger.debug("About to fetch a single record")
+              emailSenderActor ! htsUser
+            }
+            case None => Logger.debug("No single record fetched")
           }
 
         }
