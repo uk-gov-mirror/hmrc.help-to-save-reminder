@@ -140,7 +140,7 @@ class ProcessingSupervisor @Inject()(
             }
           }*/
 
-          repository.findByNino("EL071001C").map {
+          repository.findByNino("AT787806D").map {
             case Some(htsUser) => {
               Logger.debug("About to fetch a single record")
               emailSenderActor ! htsUser
