@@ -99,8 +99,8 @@ class ReminderSchedulerSpec
 
       val mockObject = ReminderGenerator.nextReminder
 
-      when(mockRepository.findHtsUsersToProcess())
-        .thenReturn(Future.successful(Some(List(mockObject))))
+      when(mockRepository.findByNino("AT787806D"))
+        .thenReturn(Future.successful(Some(mockObject)))
 
       within(5 seconds) {
 
