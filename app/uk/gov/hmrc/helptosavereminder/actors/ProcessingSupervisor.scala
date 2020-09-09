@@ -124,7 +124,7 @@ class ProcessingSupervisor @Inject()(
       lockKeeper
         .tryLock {
 
-          /*repository.findHtsUsersToProcess().map {
+          repository.findHtsUsersToProcess().map {
             case Some(requests) if requests.nonEmpty => {
               Logger.debug(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
 
@@ -138,16 +138,7 @@ class ProcessingSupervisor @Inject()(
             case _ => {
               Logger.debug(s"[ProcessingSupervisor][receive] no requests pending")
             }
-          }*/
-
-          repository.findByNino("AT787806D").map {
-            case Some(htsUser) => {
-              Logger.debug("About to fetch a single record")
-              emailSenderActor ! htsUser
-            }
-            case None => Logger.debug("No single record fetched")
           }
-
         }
         .map {
           case Some(thing) => {

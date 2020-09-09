@@ -41,7 +41,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/*class ReminderSchedulerSpec
+class ReminderSchedulerSpec
     extends TestKit(ActorSystem("TestProcessingSystem")) with UnitSpec with MockitoSugar with GuiceOneAppPerSuite
     with BeforeAndAfterAll with DefaultTimeout with ImplicitSender {
 
@@ -99,8 +99,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
       val mockObject = ReminderGenerator.nextReminder
 
-      when(mockRepository.findByNino("AT787806D"))
-        .thenReturn(Future.successful(Some(mockObject)))
+      when(mockRepository.findHtsUsersToProcess())
+        .thenReturn(Future.successful(Some(List(mockObject))))
 
       within(5 seconds) {
 
@@ -117,4 +117,4 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
   }
 
-}*/
+}
