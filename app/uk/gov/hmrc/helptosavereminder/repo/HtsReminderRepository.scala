@@ -62,36 +62,29 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   lazy val proxyCollection: GenericCollection[JSONSerializationPack.type] = collection
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUserSchedule]]] = {
-
     Logger.debug("findHtsUsersToProcess is about to fetch records")
     val testResult = Try {
-      val usersToProcess: Future[List[HtsUserSchedule]] = proxyCollection
+      proxyCollection
         .find(Json.obj(), Option.empty[JsObject])
         .sort(Json.obj("nino" -> 1))
         .cursor[HtsUserSchedule](ReadPreference.primary)
         .collect[List](-1, Cursor.FailOnError[List[HtsUserSchedule]]())
-
-      usersToProcess onComplete {
-        case _ => //Log the time
-      }
-      usersToProcess
     }
 
     testResult match {
       case Success(usersList) => {
         usersList.map(x => {
-          Logger.debug(s"No of user scheduled fetched = ${x.length}")
+          Logger.debug(s"No of user schedules fetched = ${x.length}")
           Some(x)
         })
       }
-
       case Failure(f) => {
         Logger.error(s"findHtsUsersToProcess : Exception occurred while fetching users $f ::  ${f.fillInStackTrace()}")
         Future.successful(None)
       }
     }
-
   }
+
 
   override def updateNextSendDate(nino: String, nextSendDate: LocalDate): Future[Boolean] = {
     val selector = Json.obj("nino" -> nino)
