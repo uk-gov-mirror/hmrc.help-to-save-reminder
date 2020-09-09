@@ -268,8 +268,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def indexes: Seq[Index] = Seq(
-    Index(Seq("nino"           -> IndexType.Ascending), Some("nino"), background = true),
-    Index(Seq("callBackUrlRef" -> IndexType.Ascending), Some("callBackUrlRef"), background = true)
+    Index(Seq("nino"           -> IndexType.Ascending), Some("nino"), background = true)
   )
 
 }
