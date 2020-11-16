@@ -24,6 +24,7 @@ import play.api.Logger
 import play.api.libs.json.{JsBoolean, JsObject, JsString, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
+import reactivemongo.api.commands.UpdateWriteResult
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson.BSONObjectID
@@ -93,14 +94,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateNextSendDate] updated:, result : $status ")
-        status.ok
+        statusCheck("Failed to update HtsUser NextSendDate, No Matches Found", status)
       }
       .recover {
-        // $COVERAGE-OFF$
         case e =>
           Logger.error("Failed to update HtsUser", e)
           false
-        // $COVERAGE-ON$
       }
 
   }
@@ -113,11 +112,11 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateEmail] updated:, result : $status ")
-        status.ok
+        statusCheck("Failed to update HtsUser Email, No Matches Found", status)
       }
       .recover {
         case e =>
-          //Logger.error("Failed to update HtsUser Email", e)
+          Logger.error("Failed to update HtsUser Email", e)
           false
       }
 
@@ -132,14 +131,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateCallBackRef] updated:, result : $status ")
-        status.ok
+        statusCheck("Failed to update HtsUser CallbackRef, No Matches Found", status)
       }
       .recover {
-        // $COVERAGE-OFF$
         case e =>
           Logger.error("Failed to update HtsUser", e)
           false
-        // $COVERAGE-ON$
       }
 
   }
@@ -184,18 +181,25 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       result
         .map { status =>
           Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] updated:, result : $status")
-          status.ok
+          statusCheck("Failed to update Hts ReminderUser, No Matches Found", status)
         }
         .recover {
-          // $COVERAGE-OFF$
           case e =>
             Logger.error("Failed to update HtsUser", e)
             false
-          // $COVERAGE-ON$
         }
     }
 
   }
+
+  def statusCheck(errorMsg: String, status: UpdateWriteResult): Boolean =
+    status.n match {
+      case 0 => {
+        Logger.error(errorMsg)
+        false
+      }
+      case _ => status.ok
+    }
 
   override def deleteHtsUser(nino: String): Future[Either[String, Unit]] =
     remove("nino" → Json.obj("$regex" → JsString(nino)))
