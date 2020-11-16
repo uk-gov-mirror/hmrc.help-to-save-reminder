@@ -106,6 +106,11 @@ class HtsReminderRepositorySpec
 
       val reminderValue = ReminderGenerator.nextReminder
 
+      val updateStatus: Future[Boolean] =
+        htsReminderMongoRepository.updateReminderUser(reminderValue)
+
+      await(updateStatus) shouldBe true
+
       val nextSendDate: Future[Boolean] =
         htsReminderMongoRepository.updateNextSendDate(reminderValue.nino.value, LocalDate.now())
 
@@ -119,6 +124,11 @@ class HtsReminderRepositorySpec
 
       val reminderValue = ReminderGenerator.nextReminder
       val callBackRef = System.currentTimeMillis().toString + reminderValue.nino
+
+      val updateStatus: Future[Boolean] =
+        htsReminderMongoRepository.updateReminderUser(reminderValue)
+
+      await(updateStatus) shouldBe true
 
       val nextSendDate: Future[Boolean] =
         htsReminderMongoRepository.updateCallBackRef(reminderValue.nino.value, callBackRef)
@@ -253,7 +263,7 @@ class HtsReminderRepositorySpec
       val updateStatus: Future[Boolean] =
         htsReminderMongoRepository.updateEmail("SK798383D", "James", "Tinder", "modifiedReminder@test.com")
 
-      await(updateStatus) shouldBe true
+      await(updateStatus) shouldBe false
 
     }
   }
