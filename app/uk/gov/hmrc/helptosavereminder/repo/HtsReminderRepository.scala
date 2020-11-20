@@ -201,13 +201,16 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       case _ => status.ok
     }
 
-  def statusCheck(status: WriteResult): Boolean =
+  def statusCheck(status: WriteResult): Boolean = {
+    Logger.debug("debug Status: " + status.toString)
     status.n match {
       case 0 => false
-      case _ => true
+      case _ => status.ok
     }
+  }
 
-  override def deleteHtsUser(nino: String): Future[Either[String, Unit]] =
+  override def deleteHtsUser(nino: String): Future[Either[String, Unit]] = {
+    Logger.debug(nino)
     remove("nino" → Json.obj("$regex" → JsString(nino)))
       .map[Either[String, Unit]] { res ⇒
         if (res.writeErrors.nonEmpty) {
@@ -224,6 +227,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         case e ⇒
           Left(s"Could not delete htsUser: ${e.getMessage}")
       }
+  }
 
   override def deleteHtsUserByCallBack(nino: String, callBackUrlRef: String): Future[Either[String, Unit]] =
     remove("nino" → Json.obj("$regex" → JsString(nino), "callBackUrlRef" -> callBackUrlRef))

@@ -227,6 +227,22 @@ class HtsReminderRepositorySpec
   }
 
   "Calls to deleteHtsUser on Hts Reminder repository" should {
+    "should not successfully delete the user " in {
+
+      val reminderValue = ReminderGenerator.nextReminder
+
+      val updateStatus: Future[Boolean] =
+        htsReminderMongoRepository.updateReminderUser(reminderValue)
+
+      await(updateStatus) shouldBe true
+
+      val result =
+        htsReminderMongoRepository.deleteHtsUser("AE373528D")
+
+      await(result) shouldBe Left("Could not find htsUser to delete")
+
+    }
+
     "should successfully delete the user " in {
 
       val reminderValue = ReminderGenerator.nextReminder
@@ -260,6 +276,18 @@ class HtsReminderRepositorySpec
         htsReminderMongoRepository.deleteHtsUserByCallBack("SK798383D", callBackRef)
 
       await(result) shouldBe Right(())
+
+    }
+    "should not successfully delete the user " in {
+
+      val htsUserOption = htsReminderMongoRepository.findByNino("SK798384A")
+
+      val callBackRef = System.currentTimeMillis().toString + "SK798384A"
+
+      val result =
+        htsReminderMongoRepository.deleteHtsUserByCallBack("SK798384B", callBackRef)
+
+      await(result) shouldBe Left("Could not find htsUser to delete by callBackUrlRef")
 
     }
   }
