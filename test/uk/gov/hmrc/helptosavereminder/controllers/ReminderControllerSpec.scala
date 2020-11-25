@@ -33,20 +33,18 @@ package uk.gov.hmrc.helptosavereminder.controllers
  */
 
 import com.kenshoo.play.metrics.PlayModule
-import uk.gov.hmrc.domain.Nino
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{ControllerComponents, Request}
-import uk.gov.hmrc.helptosavereminder.controllers.HtsUserUpdateController
-import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import play.api.test._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HTSEvent, HtsReminderUserDeleted, HtsReminderUserDeletedEvent, HtsReminderUserUpdated, HtsReminderUserUpdatedEvent, HtsUserSchedule, UpdateEmail}
-import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
-
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{nino => v2Nino}
+import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth._
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
+import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
+import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HTSEvent, HtsUserSchedule, UpdateEmail}
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import uk.gov.hmrc.helptosavereminder.utils.TestSupport
 
 import scala.concurrent.ExecutionContext

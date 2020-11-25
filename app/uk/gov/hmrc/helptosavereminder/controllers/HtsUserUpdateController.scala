@@ -17,7 +17,6 @@
 package uk.gov.hmrc.helptosavereminder.controllers
 
 import javax.inject.{Inject, Singleton}
-
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -25,7 +24,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
-import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsReminderUserDeleted, HtsReminderUserDeletedEvent, HtsReminderUserUpdated, HtsReminderUserUpdatedEvent, HtsUserSchedule, UpdateEmail}
+import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUserSchedule, UpdateEmail}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import uk.gov.hmrc.helptosavereminder.util.JsErrorOps._
 
