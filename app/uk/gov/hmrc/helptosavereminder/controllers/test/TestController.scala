@@ -21,14 +21,24 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.helptosavereminder.services.test.TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import play.api.libs.json.Json
+import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class TestController @Inject()(testService: TestService, cc: ControllerComponents) extends BackendController(cc) {
+class TestController @Inject()(testService: TestService, cc: ControllerComponents, repository: HtsReminderRepository)
+    extends BackendController(cc) {
 
   def populateReminders(n: Int): Action[AnyContent] = Action.async {
     Future.sequence((0 until n).map(_ => testService.generateAndInsertReminder)).map(_ => Ok)
   }
 
+  def getHtsUser(nino: String): Action[AnyContent] = Action.async { implicit request =>
+    repository.findByNino(nino).map {
+      case Some(htsUser) => Ok(Json.toJson(htsUser))
+      case None          => NotFound
+    }
+  }
 }
