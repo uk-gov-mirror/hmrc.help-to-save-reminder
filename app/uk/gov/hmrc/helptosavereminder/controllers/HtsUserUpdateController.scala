@@ -17,7 +17,6 @@
 package uk.gov.hmrc.helptosavereminder.controllers
 
 import javax.inject.{Inject, Singleton}
-
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -25,7 +24,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
-import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsReminderUserDeleted, HtsReminderUserDeletedEvent, HtsReminderUserUpdated, HtsReminderUserUpdatedEvent, HtsUserSchedule, UpdateEmail}
+import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUserSchedule, UpdateEmail}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import uk.gov.hmrc.helptosavereminder.util.JsErrorOps._
 
@@ -45,10 +44,6 @@ class HtsUserUpdateController @Inject()(
         Logger.debug(s"The HtsUser received from frontend to update is : ${htsUser.nino.value}")
         repository.updateReminderUser(htsUser).map {
           case true => {
-            val path = routes.HtsUserUpdateController.update().url
-            auditor.sendEvent(
-              HtsReminderUserUpdatedEvent(HtsReminderUserUpdated(htsUser.nino.value, Json.toJson(htsUser)), path),
-              htsUser.nino.value)
             Ok(Json.toJson(htsUser))
           }
           case false => NotModified
@@ -79,10 +74,6 @@ class HtsUserUpdateController @Inject()(
         Logger.debug(s"The HtsUser received from frontend to delete is : ${userReminder.nino}")
         repository.deleteHtsUser(userReminder.nino).map {
           case Right(()) => {
-            val path = routes.HtsUserUpdateController.deleteHtsUser().url
-            auditor.sendEvent(
-              HtsReminderUserDeletedEvent(HtsReminderUserDeleted(userReminder.nino, Json.toJson(userReminder)), path),
-              userReminder.nino)
             Ok
           }
           case Left(error) => NotModified
