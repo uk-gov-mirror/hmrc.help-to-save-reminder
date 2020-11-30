@@ -70,7 +70,6 @@ class HtsUserUpdateController @Inject()(
       case None ⇒
         Logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
-
     }
   }
 
@@ -112,8 +111,8 @@ class HtsUserUpdateController @Inject()(
 
   def updateEmail(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
     request.body.asJson.map(_.validate[UpdateEmail]) match {
-      case Some(JsSuccess(userReminder, _)) if userReminder.nino.nino === nino ⇒ {
-        Logger.debug(s"The HtsUser received from frontend to delete is : ${userReminder.nino.value}")
+      case Some(JsSuccess(userReminder, _)) ⇒ {
+        Logger.debug(s"The HtsUser received from frontend to update is : ${userReminder.nino.value}")
         repository
           .updateEmail(userReminder.nino.value, userReminder.firstName, userReminder.lastName, userReminder.email)
           .map {
@@ -121,8 +120,6 @@ class HtsUserUpdateController @Inject()(
             case false => NotFound
           }
       }
-
-      case Some(JsSuccess(_, _)) => notAllowedThisNino
 
       case Some(error: JsError) ⇒
         val errorString = error.prettyPrint()
