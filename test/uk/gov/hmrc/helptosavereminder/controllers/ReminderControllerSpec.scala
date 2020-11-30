@@ -284,6 +284,7 @@ class HtsUserUpdateControllerSpec extends AuthSupport with TestSupport {
       val fakeRequest = FakeRequest("GET", "/")
 
       inSequence {
+        mockAuth(AuthWithCL200, v2Nino)(Right(mockedNinoRetrieval))
         mockGetRepository("AE123456C")(None)
       }
 
