@@ -24,7 +24,7 @@ import play.api.Logger
 import play.api.libs.json.{JsBoolean, JsObject, JsString, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
-import reactivemongo.api.commands.UpdateWriteResult
+import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson.BSONObjectID
@@ -216,7 +216,11 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         if (res.writeErrors.nonEmpty) {
           Left(s"Could not delete htsUser: ${res.writeErrors.mkString(";")}")
         } else {
-          Right(())
+          if (statusCheck(res)) {
+            Right(())
+          } else {
+            Left(s"Could not find htsUser to delete")
+          }
         }
       }
       .recover {
