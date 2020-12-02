@@ -44,7 +44,7 @@ case class HtsReminderUserDeletedEvent(htsReminderUserDeleted: HtsReminderUserDe
     extends HTSEvent {
 
   val value: ExtendedDataEvent = {
-    HTSEvent(appConfig.appName, "ReminderUserDeleted", Json.toJson(htsReminderUserDeleted), "reminder-deleted", path)
+    HTSEvent(appConfig.appName, "ReminderDeleted", Json.toJson(htsReminderUserDeleted), "reminder-deleted", path)
   }
 
 }
