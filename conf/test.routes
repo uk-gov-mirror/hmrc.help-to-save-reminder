@@ -1,3 +1,0 @@
-GET     /populate-reminders/:n         uk.gov.hmrc.helptosavereminder.controllers.test.TestController.populateReminders(n: Int)
-
-GET     /gethtsuser/:nino              uk.gov.hmrc.helptosavereminder.controllers.test.TestController.getHtsUser(nino: String)
