@@ -114,16 +114,13 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateEmail] updated:, result : $status ")
 
-        status.n match {
-          case 0 => {
+        (status.n, status.nModified) match {
+          case (0, _) => {
             Logger.error("Failed to update HtsUser Email, No Matches Found")
             NOT_FOUND
           }
-          case _ =>
-            status.nModified match {
-              case 0 => NOT_MODIFIED
-              case _ => OK
-            }
+          case (_, 0) => NOT_MODIFIED
+          case (_, _) => OK
         }
 
       }
