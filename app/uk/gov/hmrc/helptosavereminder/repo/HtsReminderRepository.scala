@@ -34,6 +34,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.JSONSerializationPack
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions.getNextSendDate
+import play.api.http.Status._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -49,7 +50,7 @@ trait HtsReminderRepository {
   def findByCallBackUrlRef(callBackUrlRef: String): Future[Option[HtsUserSchedule]]
   def deleteHtsUser(nino: String): Future[Either[String, Unit]]
   def deleteHtsUserByCallBack(nino: String, callBackUrlRef: String): Future[Either[String, Unit]]
-  def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Boolean]
+  def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Int]
 }
 
 class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
@@ -104,7 +105,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   }
 
-  override def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Boolean] = {
+  override def updateEmail(nino: String, firstName: String, lastName: String, email: String): Future[Int] = {
     val selector = Json.obj("nino" -> nino)
     val modifier = Json.obj("$set" -> Json.obj("email" -> email, "firstName" -> firstName, "lastName" -> lastName))
     val result = proxyCollection.update(ordered = false).one(selector, modifier)
@@ -112,12 +113,24 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     result
       .map { status =>
         Logger.debug(s"[HtsReminderMongoRepository][updateEmail] updated:, result : $status ")
-        statusCheck("Failed to update HtsUser Email, No Matches Found", status)
+
+        status.n match {
+          case 0 => {
+            Logger.error("Failed to update HtsUser Email, No Matches Found")
+            NOT_FOUND
+          }
+          case _ =>
+            status.nModified match {
+              case 0 => NOT_MODIFIED
+              case _ => OK
+            }
+        }
+
       }
       .recover {
         case e =>
           Logger.error("Failed to update HtsUser Email", e)
-          false
+          NOT_FOUND
       }
 
   }

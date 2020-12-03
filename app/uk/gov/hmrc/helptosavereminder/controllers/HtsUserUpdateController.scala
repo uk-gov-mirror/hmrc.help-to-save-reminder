@@ -106,8 +106,9 @@ class HtsUserUpdateController @Inject()(
         repository
           .updateEmail(userReminder.nino.value, userReminder.firstName, userReminder.lastName, userReminder.email)
           .map {
-            case true  => Ok
-            case false => NotFound
+            case OK           => Ok
+            case NOT_MODIFIED => NotModified
+            case _            => NotFound
           }
       }
 
