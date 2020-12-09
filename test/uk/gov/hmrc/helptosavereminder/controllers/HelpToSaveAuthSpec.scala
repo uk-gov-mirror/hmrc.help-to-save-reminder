@@ -23,8 +23,8 @@ import uk.gov.hmrc.auth.core.AuthorisationException.fromString
 import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
 import uk.gov.hmrc.auth.core.retrieve._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{authProviderId => v2AuthProviderId, nino => v2Nino}
-import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth
-import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth._
+import uk.gov.hmrc.helptosavereminder.auth.HtsReminderAuth
+import uk.gov.hmrc.helptosavereminder.auth.HtsReminderAuth._
 
 import scala.concurrent.Future
 

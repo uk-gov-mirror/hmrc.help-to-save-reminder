@@ -87,9 +87,6 @@ class HtsReminderRepositorySpec
 
   "Calls to findHtsUsersToProcess a HtsReminder repository" should {
     "should successfully find that user" in {
-
-      val reminderValue = ReminderGenerator.nextReminder
-
       val usersToProcess: Future[Option[List[HtsUserSchedule]]] = htsReminderMongoRepository.findHtsUsersToProcess()
 
       await(usersToProcess) match {
@@ -262,9 +259,6 @@ class HtsReminderRepositorySpec
 
   "Calls to deleteHtsUserByCallBack on Hts Reminder repository" should {
     "should successfully delete the user " in {
-
-      val htsUserOption = htsReminderMongoRepository.findByNino("SK798383D")
-
       val callBackRef = System.currentTimeMillis().toString + "SK798383D"
 
       val nextSendDate: Future[Boolean] =
@@ -279,9 +273,6 @@ class HtsReminderRepositorySpec
 
     }
     "should not successfully delete the user " in {
-
-      val htsUserOption = htsReminderMongoRepository.findByNino("SK798384A")
-
       val callBackRef = System.currentTimeMillis().toString + "SK798384A"
 
       val result =
