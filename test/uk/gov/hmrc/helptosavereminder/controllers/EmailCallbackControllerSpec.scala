@@ -196,7 +196,7 @@ class EmailCallbackControllerSpec extends UnitSpec with MongoSpecSupport with Gu
     when(mockRepository.findByCallBackUrlRef(any())).thenReturn(Some(htsReminderUser))
     when(mockRepository.deleteHtsUserByCallBack(any(), any()))
       .thenReturn(Future.successful(Left("Error deleting")))
-    when(mockHttp.DELETE[HttpResponse](any(), any())(any(), any(), any())) ////// HMMMMMMMMMMMM
+    when(mockHttp.DELETE[HttpResponse](any(), any())(any(), any(), any()))
       .thenReturn(Future.failed(new Exception("Exception failure")))
     val result = controller.handleCallBack(callBackReferences).apply(fakeRequest)
     await(result) match {
