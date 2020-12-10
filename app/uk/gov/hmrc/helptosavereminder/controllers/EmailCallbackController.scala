@@ -16,26 +16,24 @@
 
 package uk.gov.hmrc.helptosavereminder.controllers
 
+import cats.instances.string._
+import cats.syntax.eq._
 import com.google.inject.Inject
 import play.api.Logger
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
+import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.{EventsMap, HtsReminderUserDeleted, HtsReminderUserDeletedEvent}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.helptosavereminder.util.JsErrorOps._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.helptosavereminder.util.JsErrorOps._
-import cats.instances.string._
-import cats.syntax.eq._
-import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class EmailCallbackController @Inject()(
-  http: HttpClient,
   servicesConfig: ServicesConfig,
   val cc: MessagesControllerComponents,
   repository: HtsReminderMongoRepository,
@@ -63,21 +61,18 @@ class EmailCallbackController @Inject()(
                   auditor.sendEvent(
                     HtsReminderUserDeletedEvent(
                       HtsReminderUserDeleted(htsUserSchedule.nino.value, htsUserSchedule.email),
-                      path),
-                    htsUserSchedule.nino.value)
+                      path))
                   Logger.debug(
                     s"[EmailCallbackController] Email deleted from HtsReminder Repository for user = : ${htsUserSchedule.nino}")
 
                   emailConnector
-                    .unBlockEmail(url) map { response =>
-                    response match {
-                      case true =>
-                        Logger.debug(s"Email successfully unblocked for request : $url")
-                        Future.successful(Ok)
-                      case _ =>
-                        Logger.debug(s"A request to unblock for Email is returned with error for $url")
-                        Future.successful(NOT_FOUND)
-                    }
+                    .unBlockEmail(url) map {
+                    case true =>
+                      Logger.debug(s"Email successfully unblocked for request : $url")
+                      Future.successful(Ok)
+                    case _ =>
+                      Logger.debug(s"A request to unblock for Email is returned with error for $url")
+                      Future.successful(NOT_FOUND)
                   }
                   Future.successful(Ok)
                 }

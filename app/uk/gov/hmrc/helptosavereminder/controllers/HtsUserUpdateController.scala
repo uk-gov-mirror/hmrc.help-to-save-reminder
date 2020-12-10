@@ -21,14 +21,12 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.helptosave.controllers.HtsReminderAuth
-import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
-import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.models.{CancelHtsUserReminder, HtsUserSchedule, UpdateEmail}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderRepository
 import uk.gov.hmrc.helptosavereminder.util.JsErrorOps._
 import cats.instances.string._
 import cats.syntax.eq._
+import uk.gov.hmrc.helptosavereminder.auth.HtsReminderAuth
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class HtsUserUpdateController @Inject()(
   repository: HtsReminderRepository,
   cc: ControllerComponents,
-  override val authConnector: AuthConnector)(implicit val ec: ExecutionContext, appConfig: AppConfig)
+  override val authConnector: AuthConnector)(implicit val ec: ExecutionContext)
     extends HtsReminderAuth(authConnector, cc) {
 
   val notAllowedThisNino: Future[Result] =
@@ -68,7 +66,7 @@ class HtsUserUpdateController @Inject()(
     }
   }
 
-  def getHtsUser(nino: String): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit authNino =>
+  def getHtsUser(nino: String): Action[AnyContent] = ggAuthorisedWithNino { _ => implicit authNino =>
     if (nino === authNino) {
       repository.findByNino(nino).map {
         case Some(htsUser) => Ok(Json.toJson(htsUser))
@@ -77,7 +75,7 @@ class HtsUserUpdateController @Inject()(
     } else notAllowedThisNino
   }
 
-  def deleteHtsUser(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
+  def deleteHtsUser(): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.map(_.validate[CancelHtsUserReminder]) match {
       case Some(JsSuccess(userReminder, _)) ⇒ {
         Logger.debug(s"The HtsUser received from frontend to delete is : ${userReminder.nino}")
@@ -85,7 +83,7 @@ class HtsUserUpdateController @Inject()(
           case Right(()) => {
             Ok
           }
-          case Left(error) => NotModified
+          case Left(_) => NotModified
         }
       }
       case Some(error: JsError) ⇒
