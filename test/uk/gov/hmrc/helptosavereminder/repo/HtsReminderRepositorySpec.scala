@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class HtsReminderRepositorySpec
     extends UnitSpec with MockitoSugar with MongoSpecSupport with GuiceOneAppPerSuite with BeforeAndAfterAll {
@@ -206,19 +206,21 @@ class HtsReminderRepositorySpec
 
       val callBackRef = UUID.randomUUID().toString
 
-      val reminderValue = (ReminderGenerator.nextReminder).copy(callBackUrlRef = callBackRef)
+      val reminderValue = ReminderGenerator.nextReminder.copy(callBackUrlRef = callBackRef)
 
       val result: Future[Boolean] =
         htsReminderMongoRepository.updateReminderUser(reminderValue.copy(nino = Nino("SK798383D")))
 
-      result onComplete ({
-        case Success(x) => {
+      result onComplete {
+        case Success(_) => {
           val htsUserOption: Option[HtsUserSchedule] =
             htsReminderMongoRepository.findByCallBackUrlRef(callBackRef)
-
           await(htsUserOption).get.nino.value shouldBe "SK798383D"
         }
-      })
+        case Failure(e) => {
+          throw new Exception(s"Failed to update user because: $e")
+        }
+      }
 
     }
   }
