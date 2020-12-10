@@ -102,7 +102,7 @@ class EmailSenderActorSpec
           anyString,
           requestCaptor.capture(),
           any[Seq[(String, String)]])(any(), any(), any[HeaderCarrier], any[ExecutionContext]))
-        .thenReturn(Future.successful(HttpResponse(202)))
+        .thenReturn(Future.successful(HttpResponse(202, "")))
 
       when(mockRepository.updateNextSendDate(any(), any()))
         .thenReturn(Future.successful(true))

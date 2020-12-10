@@ -196,6 +196,7 @@ class HtsReminderRepositorySpec
 
           await(htsUserOption).get.nino.value shouldBe "SK798383D"
         }
+        case Failure(exception) => new Exception(s"Attempt at finding user by their nino failed because: $exception")
       })
 
     }

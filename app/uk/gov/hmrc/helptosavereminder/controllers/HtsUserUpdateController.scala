@@ -66,7 +66,7 @@ class HtsUserUpdateController @Inject()(
     }
   }
 
-  def getHtsUser(nino: String): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit authNino =>
+  def getHtsUser(nino: String): Action[AnyContent] = ggAuthorisedWithNino { _ => implicit authNino =>
     if (nino === authNino) {
       repository.findByNino(nino).map {
         case Some(htsUser) => Ok(Json.toJson(htsUser))
@@ -83,7 +83,7 @@ class HtsUserUpdateController @Inject()(
           case Right(()) => {
             Ok
           }
-          case Left(error) => NotModified
+          case Left(_) => NotModified
         }
       }
       case Some(error: JsError) ⇒
