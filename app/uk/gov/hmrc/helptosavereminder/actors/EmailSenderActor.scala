@@ -79,7 +79,7 @@ class EmailSenderActor @Inject()(
             case None =>
           }
         }
-        case false => Logger.error(s"nextSendDate for User: $template cannot be updated.")
+        case false => Logger.warn(s"nextSendDate for User: $template cannot be updated.")
       })
 
     }
@@ -111,7 +111,7 @@ class EmailSenderActor @Inject()(
     emailConnector.sendEmail(request, url) map { response =>
       response match {
         case true => Logger.debug(s"[EmailSenderActor] Email sent: $request"); true
-        case _    => Logger.error(s"[EmailSenderActor] Email not sent: $request"); false
+        case _    => Logger.warn(s"[EmailSenderActor] Email not sent: $request"); false
       }
     }
   }

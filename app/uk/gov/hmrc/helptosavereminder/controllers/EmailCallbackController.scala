@@ -52,7 +52,7 @@ class EmailCallbackController @Inject()(
               Logger.debug(s"The URL to request email deletion is $url")
               repository.deleteHtsUserByCallBack(htsUserSchedule.nino.value, callBackReference).flatMap {
                 case Left(error) => {
-                  Logger.error(
+                  Logger.warn(
                     s"Could not delete from HtsReminder Repository for NINO = ${htsUserSchedule.nino.value}, $error")
                   Future.successful(Ok(s"Error deleting the hts schedule by callBackReference = $callBackReference"))
                 }
@@ -88,7 +88,7 @@ class EmailCallbackController @Inject()(
       }
       case Some(error: JsError) ⇒
         val errorString = error.prettyPrint()
-        Logger.error(s"Unable to parse Events List for CallBackRequest = $errorString")
+        Logger.warn(s"Unable to parse Events List for CallBackRequest = $errorString")
         Future.successful(BadRequest(s"Unable to parse Events List for CallBackRequest = $errorString"))
 
       case None ⇒

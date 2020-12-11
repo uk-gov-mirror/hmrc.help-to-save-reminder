@@ -34,7 +34,7 @@ class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: Ex
           Logger.debug(s"Updated the User nextSendDate for ${reminder.nino}")
         }
         case _ => {
-          Logger.error(s"Failed to update nextSendDate for the User: ${reminder.nino}")
+          Logger.warn(s"Failed to update nextSendDate for the User: ${reminder.nino}")
         }
       }
     }
@@ -47,7 +47,7 @@ class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: Ex
             s"Updated the User callBackRef for ${updateReminder.reminder.nino.value} with value : ${updateReminder.callBackRefUrl}")
           origSender ! UpdateCallBackSuccess(updateReminder.reminder, updateReminder.callBackRefUrl)
         }
-        case _ => Logger.error(s"Failed to update CallbackRef for the User: ${updateReminder.reminder.nino.value}")
+        case _ => Logger.warn(s"Failed to update CallbackRef for the User: ${updateReminder.reminder.nino.value}")
       }
     }
   }
