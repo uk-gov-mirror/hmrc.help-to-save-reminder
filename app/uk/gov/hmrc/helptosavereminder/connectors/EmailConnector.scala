@@ -38,7 +38,7 @@ class EmailConnector @Inject()(http: HttpClient) {
       response.status match {
         case ACCEPTED =>
           Logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
-        case _ => Logger.warn(s"[EmailSenderActor] Email not sent: ${response.body}"); false
+        case _ => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
       }
     }
 
