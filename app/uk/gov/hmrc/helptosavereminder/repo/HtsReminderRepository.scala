@@ -116,7 +116,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
         (status.n, status.nModified) match {
           case (0, _) => {
-            Logger.error("Failed to update HtsUser Email, No Matches Found")
+            Logger.warn("Failed to update HtsUser Email, No Matches Found")
             NOT_FOUND
           }
           case (_, 0) => NOT_MODIFIED
@@ -126,7 +126,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       }
       .recover {
         case e =>
-          Logger.error("Failed to update HtsUser Email", e)
+          Logger.warn("Failed to update HtsUser Email", e)
           NOT_FOUND
       }
 
@@ -156,7 +156,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val selector = Json.obj("nino" -> htsReminder.nino.value)
 
     if (htsReminder.daysToReceive.length <= 0) {
-      Logger.error(s"nextSendDate for User: $htsReminder cannot be updated.")
+      Logger.warn(s"nextSendDate for User: $htsReminder cannot be updated.")
       Future.successful(false)
     } else {
       val modifierJson = Json.obj(
@@ -178,7 +178,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       val finalModifiedJson = updatedNextSendDate match {
         case Some(localDate) => updatedModifierJsonCallBackRef ++ Json.obj("nextSendDate" -> localDate)
         case None =>
-          Logger.error(s"nextSendDate for User: $htsReminder cannot be updated.")
+          Logger.warn(s"nextSendDate for User: $htsReminder cannot be updated.")
           updatedModifierJsonCallBackRef
       }
 
@@ -195,7 +195,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
         }
         .recover {
           case e =>
-            Logger.error("Failed to update HtsUser", e)
+            Logger.warn("Failed to update HtsUser", e)
             false
         }
     }
@@ -205,7 +205,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   def statusCheck(errorMsg: String, status: UpdateWriteResult): Boolean =
     status.n match {
       case 0 => {
-        Logger.error(errorMsg)
+        Logger.warn(errorMsg)
         false
       }
       case _ => status.ok
