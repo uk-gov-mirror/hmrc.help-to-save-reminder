@@ -83,6 +83,7 @@ class HtsReminderRepositorySpec
   }
 
   "Calls to findHtsUsersToProcess a HtsReminder repository" should {
+
     val reminderValue = (ReminderGenerator.nextReminder)
     val result: Future[Boolean] = htsReminderMongoRepository.updateReminderUser(reminderValue)
     await(result) match {
@@ -101,6 +102,7 @@ class HtsReminderRepositorySpec
         case None =>
       }
     }
+
     "should fail find that user" in {
       val usersToProcess: Future[Option[List[HtsUserSchedule]]] = htsReminderMongoRepository.findHtsUsersToProcess()
       await(usersToProcess) match {
