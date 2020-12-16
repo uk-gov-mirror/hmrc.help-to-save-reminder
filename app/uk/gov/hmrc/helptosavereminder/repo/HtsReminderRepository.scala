@@ -67,7 +67,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     Logger.debug("findHtsUsersToProcess is about to fetch records")
     val testResult = Try {
       proxyCollection
-        .find(Json.obj(), Option.empty[JsObject])
+        .find(Json.obj("nextSendDate" -> Map("$lte" -> LocalDate.now())), Option.empty[JsObject])
         .sort(Json.obj("nino" -> 1))
         .cursor[HtsUserSchedule](ReadPreference.primary)
         .collect[List](-1, Cursor.FailOnError[List[HtsUserSchedule]]())
