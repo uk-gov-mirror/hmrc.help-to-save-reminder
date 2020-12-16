@@ -74,40 +74,42 @@ class HtsReminderRepositorySpec
     "should not update the userSchedule if daysToReceive field is Empty" in {
 
       val reminderValue = ReminderGenerator.nextReminder
-
       val result: Future[Boolean] =
         htsReminderMongoRepository.updateReminderUser(reminderValue.copy(daysToReceive = Seq.empty))
-
       await(result) match {
         case x => x shouldBe false
       }
-
     }
   }
 
   "Calls to findHtsUsersToProcess a HtsReminder repository" should {
-//    "should successfully find that user" in {
-//      val reminderValue = (ReminderGenerator.nextReminder).copy(nextSendDate = LocalDate.now().minusDays(1))
-//      val result: Future[Boolean] = htsReminderMongoRepository.updateReminderUser(reminderValue)
-//      await(result) match {
-//        case x => x shouldBe true
-//      }
-//      val usersToProcess: Future[Option[List[HtsUserSchedule]]] = htsReminderMongoRepository.findHtsUsersToProcess()
-//      await(usersToProcess) match {
-//        case Some(x) => x.size shouldBe >=(1)
-//        case None    =>
-//      }
-//    }
-    "should fail find that user" in {
-      val reminderValue = (ReminderGenerator.nextReminder).copy(nextSendDate = LocalDate.now().plusDays(1))
-      val result: Future[Boolean] = htsReminderMongoRepository.updateReminderUser(reminderValue)
-      await(result) match {
-        case x => x shouldBe true
-      }
+
+    val reminderValue = (ReminderGenerator.nextReminder)
+    val result: Future[Boolean] = htsReminderMongoRepository.updateReminderUser(reminderValue)
+    await(result) match {
+      case x => x shouldBe true
+    }
+    val now = LocalDate.now
+    htsReminderMongoRepository.updateNextSendDate(reminderValue.nino.value, LocalDate.now())
+    "should successfully find that user" in {
+
       val usersToProcess: Future[Option[List[HtsUserSchedule]]] = htsReminderMongoRepository.findHtsUsersToProcess()
       await(usersToProcess) match {
-        case Some(x) => x.size shouldBe >=(0)
-        case None    =>
+        case Some(x) => {
+          x.size shouldBe >=(1)
+          x.map(s => s.nextSendDate.isAfter(now) shouldBe false)
+        }
+        case None =>
+      }
+    }
+
+    "should fail find that user" in {
+      val usersToProcess: Future[Option[List[HtsUserSchedule]]] = htsReminderMongoRepository.findHtsUsersToProcess()
+      await(usersToProcess) match {
+        case Some(x) => {
+          x.map(s => s.nextSendDate.isAfter(now) shouldBe false)
+        }
+        case None =>
       }
     }
   }
