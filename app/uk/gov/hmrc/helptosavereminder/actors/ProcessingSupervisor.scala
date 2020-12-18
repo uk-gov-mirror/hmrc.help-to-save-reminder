@@ -50,7 +50,7 @@ class ProcessingSupervisor @Inject()(
 
   lazy val isUserScheduleEnabled: Boolean = appConfig.isUserScheduleEnabled
 
-  lazy val userScheduleCronExpression: String = appConfig.userScheduleCronExpression.replace('|', ' ')
+  lazy val userScheduleCronExpression: String = appConfig.userScheduleCronExpression.replace('_', ' ')
 
   val defaultRepoLockPeriod: Int = appConfig.defaultRepoLockPeriod
 
