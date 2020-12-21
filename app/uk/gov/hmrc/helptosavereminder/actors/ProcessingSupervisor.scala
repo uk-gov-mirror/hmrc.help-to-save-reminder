@@ -84,7 +84,7 @@ class ProcessingSupervisor @Inject()(
   override def receive: Receive = {
 
     case STOP => {
-      Logger.debug("[ProcessingSupervisor] received while not processing: STOP received")
+      Logger.info("[ProcessingSupervisor] received while not processing: STOP received")
       lockrepo.releaseLock(lockKeeper.lockId, lockKeeper.serverId)
     }
 
@@ -97,6 +97,7 @@ class ProcessingSupervisor @Inject()(
 
       (isUserScheduleEnabled, isExpressionValid) match {
         case (true, true) =>
+          Logger.info(s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
           scheduler
             .createSchedule(
               "UserScheduleJob",
@@ -117,14 +118,14 @@ class ProcessingSupervisor @Inject()(
 
     case START => {
 
-      Logger.debug(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = $repoLockPeriod")
+      Logger.info(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = $repoLockPeriod")
 
       lockKeeper
         .tryLock {
 
           repository.findHtsUsersToProcess().map {
             case Some(requests) if requests.nonEmpty => {
-              Logger.debug(s"[ProcessingSupervisor][receive] took ${requests.size} request/s")
+              Logger.info(s"[ProcessingSupervisor][receive] took ${requests.size} requests)")
 
               for (request <- requests) {
 
@@ -134,7 +135,7 @@ class ProcessingSupervisor @Inject()(
 
             }
             case _ => {
-              Logger.debug(s"[ProcessingSupervisor][receive] no requests pending")
+              Logger.info(s"[ProcessingSupervisor][receive] no requests pending")
             }
           }
         }
@@ -149,7 +150,7 @@ class ProcessingSupervisor @Inject()(
           }
         }
 
-      Logger.debug("Exiting START message processor by ProcessingSupervisor")
+      Logger.info("Exiting START message processor by ProcessingSupervisor")
 
     }
   }
