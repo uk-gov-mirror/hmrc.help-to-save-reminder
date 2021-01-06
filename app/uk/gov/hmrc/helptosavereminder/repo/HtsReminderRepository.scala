@@ -78,7 +78,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     testResult match {
       case Success(usersList) => {
         usersList.map(x => {
-          Logger.debug(s"No of user schedules fetched = ${x.length}")
+          Logger.info(s"Number of scheduled users fetched = ${x.length}")
           Some(x)
         })
       }
@@ -158,7 +158,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val selector = Json.obj("nino" -> htsReminder.nino.value)
 
     if (htsReminder.daysToReceive.length <= 0) {
-      Logger.warn(s"nextSendDate for User: $htsReminder cannot be updated.")
+      Logger.warn(s"nextSendDate for User: ${htsReminder.nino} cannot be updated.")
       Future.successful(false)
     } else {
       val modifierJson = Json.obj(
@@ -180,7 +180,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       val finalModifiedJson = updatedNextSendDate match {
         case Some(localDate) => updatedModifierJsonCallBackRef ++ Json.obj("nextSendDate" -> localDate)
         case None =>
-          Logger.warn(s"nextSendDate for User: $htsReminder cannot be updated.")
+          Logger.warn(s"nextSendDate for User: ${htsReminder.nino} cannot be updated.")
           updatedModifierJsonCallBackRef
       }
 
