@@ -50,7 +50,8 @@ class ProcessingSupervisor @Inject()(
 
   lazy val isUserScheduleEnabled: Boolean = appConfig.isUserScheduleEnabled
 
-  lazy val userScheduleCronExpression: String = appConfig.userScheduleCronExpression.replace('|', ' ')
+  lazy val userScheduleCronExpression1: String = appConfig.userScheduleCronExpression.replace('|', ' ')
+  lazy val userScheduleCronExpression = Some("0 55 8 7 * ? *").getOrElse(userScheduleCronExpression1)
 
   val defaultRepoLockPeriod: Int = appConfig.defaultRepoLockPeriod
 
@@ -97,7 +98,8 @@ class ProcessingSupervisor @Inject()(
 
       (isUserScheduleEnabled, isExpressionValid) match {
         case (true, true) =>
-          Logger.info(s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
+          Logger.info(
+            s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
           scheduler
             .createSchedule(
               "UserScheduleJob",
