@@ -65,11 +65,11 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUserSchedule]]] = {
     Logger.debug("findHtsUsersToProcess is about to fetch records")
-    val filterDate = Some(LocalDate.parse("2021-02-06")).getOrElse(LocalDate.now())
-    Logger.info(s"time for HtsUsersToProcess $filterDate")
+    val now = LocalDate.now()
+    Logger.info(s"time for HtsUsersToProcess $now")
     val testResult = Try {
       proxyCollection
-        .find(Json.obj("nextSendDate" -> Map("$lte" -> filterDate)), Option.empty[JsObject])
+        .find(Json.obj("nextSendDate" -> Map("$lte" -> now)), Option.empty[JsObject])
         .sort(Json.obj("nino" -> 1))
         .cursor[HtsUserSchedule](ReadPreference.primary)
         .collect[List](-1, Cursor.FailOnError[List[HtsUserSchedule]]())
