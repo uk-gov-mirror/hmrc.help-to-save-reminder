@@ -79,7 +79,7 @@ class EmailSenderActor @Inject()(
             case None =>
           }
         }
-        case false => Logger.warn(s"nextSendDate for User: $template cannot be updated.")
+        case false => Logger.warn(s"nextSendDate for User: ${successReminder.reminder.nino} cannot be updated.")
       })
 
     }
