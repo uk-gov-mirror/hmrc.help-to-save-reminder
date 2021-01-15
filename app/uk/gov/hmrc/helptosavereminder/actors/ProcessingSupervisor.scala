@@ -99,6 +99,22 @@ class ProcessingSupervisor @Inject()(
         case (true, true) =>
           Logger.info(
             s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
+          repository.findHtsUsersToProcess().map {
+            case Some(requests) if requests.nonEmpty => {
+              Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.size} requests)")
+              Logger.info(
+                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.map(usr => usr.email).toSet.size} unuque emails")
+              Logger.info(
+                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.count(usr => usr.daysToReceive == Seq(1))}  Set to First")
+              Logger.info(
+                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.count(usr => usr.daysToReceive == Seq(25))}  Set to Twenty Fith")
+              Logger.info(
+                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.count(usr => usr.daysToReceive == Seq(1, 25))}  Set to First and Twenty Fith")
+            }
+            case _ => {
+              Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] no requests pending")
+            }
+          }
           scheduler
             .createSchedule(
               "UserScheduleJob",
