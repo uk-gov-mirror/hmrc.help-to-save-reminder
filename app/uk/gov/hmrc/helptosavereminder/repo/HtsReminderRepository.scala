@@ -78,7 +78,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     testResult match {
       case Success(usersList) => {
         usersList.map(x => {
-          Logger.debug(s"No of user schedules fetched = ${x.length}")
+          Logger.info(s"Number of scheduled users fetched = ${x.length}")
           Some(x)
         })
       }
