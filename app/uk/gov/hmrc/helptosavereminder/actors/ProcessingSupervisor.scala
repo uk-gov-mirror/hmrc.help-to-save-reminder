@@ -95,26 +95,39 @@ class ProcessingSupervisor @Inject()(
       val scheduler = QuartzSchedulerExtension(context.system)
       val isExpressionValid = CronExpression.isValidExpression(userScheduleCronExpression)
 
+      repository.findAll().map {
+        case requests if requests.nonEmpty => {
+          val nextScheduledDates = requests.map(request => request.nextSendDate).toSet
+          val daysToRecieve = requests.map(request => request.daysToReceive).toSet
+          val emailDuplicateOccurrencesSet = requests.groupBy(_.email).mapValues(_.size).groupBy(_._2).mapValues(_.size)
+
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${requests.size} requests")
+          Logger.info(
+            s"[ProcessingSupervisor][BOOTSTRAP] found ${requests.map(request => request.email).toSet.size} unique emails")
+
+          Logger.info(
+            s"[ProcessingSupervisor][BOOTSTRAP] found ${emailDuplicateOccurrencesSet.mkString(", ")} emailsOccurrences[Duplicates ,Occurrences]")
+
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${nextScheduledDates.mkString(", ")} [nextSendDates]")
+          nextScheduledDates.foreach(date =>
+            Logger.info(
+              s"[ProcessingSupervisor][BOOTSTRAP] found ${requests.count(request => request.nextSendDate == date)} [nextSendDate : $date]"))
+
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${daysToRecieve.mkString(", ")} [daysToReceive]")
+          daysToRecieve.foreach(days =>
+            Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${requests
+              .count(usr => usr.daysToReceive == days)} Set to ${days.mkString(", ")}"))
+        }
+
+        case _ => {
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found no requests found")
+        }
+      }
+
       (isUserScheduleEnabled, isExpressionValid) match {
         case (true, true) =>
           Logger.info(
             s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
-          repository.findHtsUsersToProcess().map {
-            case Some(requests) if requests.nonEmpty => {
-              Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.size} requests)")
-              Logger.info(
-                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.map(usr => usr.email).toSet.size} unuque emails")
-              Logger.info(
-                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.count(usr => usr.daysToReceive == Seq(1))}  Set to First")
-              Logger.info(
-                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.count(usr => usr.daysToReceive == Seq(25))}  Set to Twenty Fith")
-              Logger.info(
-                s"[ProcessingSupervisor][BOOTSTRAP] took ${requests.count(usr => usr.daysToReceive == Seq(1, 25))}  Set to First and Twenty Fith")
-            }
-            case _ => {
-              Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] no requests pending")
-            }
-          }
           scheduler
             .createSchedule(
               "UserScheduleJob",
