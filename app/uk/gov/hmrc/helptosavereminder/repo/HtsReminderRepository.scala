@@ -20,7 +20,6 @@ import java.time.{LocalDate, ZoneId}
 
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
-import play.api.Logger
 import play.api.libs.json.{JsBoolean, JsObject, JsString, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.collections.GenericCollection
@@ -64,9 +63,9 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   lazy val proxyCollection: GenericCollection[JSONSerializationPack.type] = collection
 
   override def findHtsUsersToProcess(): Future[Option[List[HtsUserSchedule]]] = {
-    Logger.debug("findHtsUsersToProcess is about to fetch records")
+    logger.debug("findHtsUsersToProcess is about to fetch records")
     val now = LocalDate.now()
-    Logger.info(s"time for HtsUsersToProcess $now")
+    logger.info(s"time for HtsUsersToProcess $now")
     val testResult = Try {
       proxyCollection
         .find(Json.obj("nextSendDate" -> Map("$lte" -> now)), Option.empty[JsObject])
@@ -78,12 +77,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     testResult match {
       case Success(usersList) => {
         usersList.map(x => {
-          Logger.info(s"Number of scheduled users fetched = ${x.length}")
+          logger.info(s"Number of scheduled users fetched = ${x.length}")
           Some(x)
         })
       }
       case Failure(f) => {
-        Logger.error(s"findHtsUsersToProcess : Exception occurred while fetching users $f ::  ${f.fillInStackTrace()}")
+        logger.error(s"findHtsUsersToProcess : Exception occurred while fetching users $f ::  ${f.fillInStackTrace()}")
         Future.successful(None)
       }
     }
@@ -96,12 +95,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
     result
       .map { status =>
-        Logger.debug(s"[HtsReminderMongoRepository][updateNextSendDate] updated:, result : $status ")
+        logger.debug(s"[HtsReminderMongoRepository][updateNextSendDate] updated:, result : $status ")
         statusCheck("Failed to update HtsUser NextSendDate, No Matches Found", status)
       }
       .recover {
         case e =>
-          Logger.error("Failed to update HtsUser", e)
+          logger.error("Failed to update HtsUser", e)
           false
       }
 
@@ -114,11 +113,11 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
     result
       .map { status =>
-        Logger.debug(s"[HtsReminderMongoRepository][updateEmail] updated:, result : $status ")
+        logger.debug(s"[HtsReminderMongoRepository][updateEmail] updated:, result : $status ")
 
         (status.n, status.nModified) match {
           case (0, _) => {
-            Logger.warn("Failed to update HtsUser Email, No Matches Found")
+            logger.warn("Failed to update HtsUser Email, No Matches Found")
             NOT_FOUND
           }
           case (_, 0) => NOT_MODIFIED
@@ -128,7 +127,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       }
       .recover {
         case e =>
-          Logger.warn("Failed to update HtsUser Email", e)
+          logger.warn("Failed to update HtsUser Email", e)
           NOT_FOUND
       }
 
@@ -142,12 +141,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
     result
       .map { status =>
-        Logger.debug(s"[HtsReminderMongoRepository][updateCallBackRef] updated:, result : $status ")
+        logger.debug(s"[HtsReminderMongoRepository][updateCallBackRef] updated:, result : $status ")
         statusCheck("Failed to update HtsUser CallbackRef, No Matches Found", status)
       }
       .recover {
         case e =>
-          Logger.error("Failed to update HtsUser", e)
+          logger.error("Failed to update HtsUser", e)
           false
       }
 
@@ -158,7 +157,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
     val selector = Json.obj("nino" -> htsReminder.nino.value)
 
     if (htsReminder.daysToReceive.length <= 0) {
-      Logger.warn(s"nextSendDate for User: ${htsReminder.nino} cannot be updated.")
+      logger.warn(s"nextSendDate for User: ${htsReminder.nino} cannot be updated.")
       Future.successful(false)
     } else {
       val modifierJson = Json.obj(
@@ -180,7 +179,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
       val finalModifiedJson = updatedNextSendDate match {
         case Some(localDate) => updatedModifierJsonCallBackRef ++ Json.obj("nextSendDate" -> localDate)
         case None =>
-          Logger.warn(s"nextSendDate for User: ${htsReminder.nino} cannot be updated.")
+          logger.warn(s"nextSendDate for User: ${htsReminder.nino} cannot be updated.")
           updatedModifierJsonCallBackRef
       }
 
@@ -192,12 +191,12 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
 
       result
         .map { status =>
-          Logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] updated:, result : $status")
+          logger.debug(s"[HtsReminderMongoRepository][updateReminderUser] updated:, result : $status")
           statusCheck("Failed to update Hts ReminderUser, No Matches Found", status)
         }
         .recover {
           case e =>
-            Logger.warn("Failed to update HtsUser", e)
+            logger.warn("Failed to update HtsUser", e)
             false
         }
     }
@@ -207,14 +206,14 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   def statusCheck(errorMsg: String, status: UpdateWriteResult): Boolean =
     status.n match {
       case 0 => {
-        Logger.warn(errorMsg)
+        logger.warn(errorMsg)
         false
       }
       case _ => status.ok
     }
 
   def statusCheck(status: WriteResult): Boolean = {
-    Logger.debug("debug Status: " + status.toString)
+    logger.debug("debug Status: " + status.toString)
     status.n match {
       case 0 => false
       case _ => status.ok
@@ -222,7 +221,7 @@ class HtsReminderMongoRepository @Inject()(mongo: ReactiveMongoComponent)
   }
 
   override def deleteHtsUser(nino: String): Future[Either[String, Unit]] = {
-    Logger.debug(nino)
+    logger.debug(nino)
     remove("nino" → Json.obj("$regex" → JsString(nino)))
       .map[Either[String, Unit]] { res ⇒
         if (res.writeErrors.nonEmpty) {

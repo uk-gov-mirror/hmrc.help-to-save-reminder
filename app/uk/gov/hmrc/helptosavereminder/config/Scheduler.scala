@@ -20,7 +20,7 @@ import akka.actor.{ActorSystem, Props}
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.http.HttpClient
-import play.api.{Configuration, Environment, Logger}
+import play.api.{Configuration, Environment, Logging}
 import uk.gov.hmrc.helptosavereminder.actors.ProcessingSupervisor
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
@@ -36,14 +36,15 @@ class Scheduler @Inject()(
   config: Configuration,
   servicesConfig: ServicesConfig,
   emailConnector: EmailConnector
-)(implicit val ec: ExecutionContext, appconfig: AppConfig) {
+)(implicit val ec: ExecutionContext, appconfig: AppConfig)
+    extends Logging {
 
   lazy val reminderSupervisor = actorSystem.actorOf(
     Props(classOf[ProcessingSupervisor], mongoApi, servicesConfig, emailConnector, ec, appconfig),
     "reminder-supervisor"
   )
 
-  Logger.debug("About to send a BootStrap message to the Supervisor")
+  logger.debug("About to send a BootStrap message to the Supervisor")
 
   reminderSupervisor ! BOOTSTRAP
 

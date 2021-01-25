@@ -21,7 +21,7 @@ import java.util.UUID
 import akka.actor._
 import com.google.inject.Inject
 import javax.inject.Singleton
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUserScheduleMsg, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
@@ -37,7 +37,7 @@ class EmailSenderActor @Inject()(
   servicesConfig: ServicesConfig,
   repository: HtsReminderMongoRepository,
   emailConnector: EmailConnector)(implicit ec: ExecutionContext, implicit val appConfig: AppConfig)
-    extends Actor {
+    extends Actor with Logging {
 
   implicit lazy val hc = HeaderCarrier()
   lazy val htsUserUpdateActor: ActorRef =
@@ -81,7 +81,7 @@ class EmailSenderActor @Inject()(
           }
         }
         case false =>
-          Logger.warn(s"nextSendDate for User: ${successReminder.reminder.htsUserSchedule.nino} cannot be updated.")
+          logger.warn(s"nextSendDate for User: ${successReminder.reminder.htsUserSchedule.nino} cannot be updated.")
       })
 
     }
@@ -92,7 +92,7 @@ class EmailSenderActor @Inject()(
 
     val callBackUrl = s"${servicesConfig.baseUrl("help-to-save-reminder")}/help-to-save-reminder/bouncedEmail/" + template.callBackUrlRef
 
-    Logger.debug(s"The callback URL = $callBackUrl")
+    logger.debug(s"The callback URL = $callBackUrl")
 
     val request = SendTemplatedEmailRequest(
       List(template.email),
@@ -110,8 +110,8 @@ class EmailSenderActor @Inject()(
 
     emailConnector.sendEmail(request, url) map { response =>
       response match {
-        case true => Logger.debug(s"[EmailSenderActor] Email sent: $request"); true
-        case _    => Logger.warn(s"[EmailSenderActor] Email not sent: $request"); false
+        case true => logger.debug(s"[EmailSenderActor] Email sent: $request"); true
+        case _    => logger.warn(s"[EmailSenderActor] Email not sent: $request"); false
       }
     }
   }

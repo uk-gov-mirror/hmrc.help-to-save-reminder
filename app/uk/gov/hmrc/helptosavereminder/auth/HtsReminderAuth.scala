@@ -18,7 +18,7 @@ package uk.gov.hmrc.helptosavereminder.auth
 
 import cats.instances.string._
 import cats.syntax.eq._
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.{GovernmentGateway, PrivilegedApplication}
 import uk.gov.hmrc.auth.core._
@@ -41,7 +41,7 @@ object HtsReminderAuth {
 }
 
 class HtsReminderAuth(htsAuthConnector: AuthConnector, controllerComponents: ControllerComponents)
-    extends BackendController(controllerComponents) with AuthorisedFunctions {
+    extends BackendController(controllerComponents) with AuthorisedFunctions with Logging {
 
   import HtsReminderAuth._
 
@@ -57,7 +57,7 @@ class HtsReminderAuth(htsAuthConnector: AuthConnector, controllerComponents: Con
       authorised(AuthWithCL200)
         .retrieve(v2Nino) { mayBeNino ⇒
           mayBeNino.fold[Future[Result]] {
-            Logger.warn("Could not find NINO for logged in user")
+            logger.warn("Could not find NINO for logged in user")
             Forbidden
           }(nino ⇒ action(request)(nino))
         }
@@ -80,6 +80,7 @@ class HtsReminderAuth(htsAuthConnector: AuthConnector, controllerComponents: Con
     Action.async { implicit request ⇒
       authorised(GGAndPrivilegedProviders)
         .retrieve(v2.Retrievals.authProviderId) {
+          /* authProviderId deprecated but credentials does not support Privileged Application client*/
           case GGCredId(_) ⇒
             authorised().retrieve(v2Nino) { retrievedNINO ⇒
               (nino, retrievedNINO) match {
@@ -87,7 +88,7 @@ class HtsReminderAuth(htsAuthConnector: AuthConnector, controllerComponents: Con
                   if (given === retrieved) {
                     action(request)(given)
                   } else {
-                    Logger.warn("Given NINO did not match retrieved NINO")
+                    logger.warn("Given NINO did not match retrieved NINO")
                     toFuture(Forbidden)
                   }
 
@@ -95,19 +96,19 @@ class HtsReminderAuth(htsAuthConnector: AuthConnector, controllerComponents: Con
                   action(request)(retrieved)
 
                 case (_, None) ⇒
-                  Logger.warn("Could not retrieve NINO for GG session")
+                  logger.warn("Could not retrieve NINO for GG session")
                   Forbidden
               }
             }
 
           case PAClientId(_) ⇒
             nino.fold[Future[Result]] {
-              Logger.warn("NINO not given for privileged request")
+              logger.warn("NINO not given for privileged request")
               BadRequest
             }(n ⇒ action(request)(n))
 
           case other ⇒
-            Logger.warn(s"Recevied request from unsupported authProvider: ${other.getClass.getSimpleName}")
+            logger.warn(s"Recevied request from unsupported authProvider: ${other.getClass.getSimpleName}")
             toFuture(Forbidden)
 
         }
@@ -118,15 +119,15 @@ class HtsReminderAuth(htsAuthConnector: AuthConnector, controllerComponents: Con
 
   def handleFailure(): PartialFunction[Throwable, Result] = {
     case _: NoActiveSession ⇒
-      Logger.warn("user is not logged in, probably a hack?")
+      logger.warn("user is not logged in, probably a hack?")
       Unauthorized
 
     case e: InternalError ⇒
-      Logger.warn(s"Could not authenticate user due to internal error: ${e.reason}")
+      logger.warn(s"Could not authenticate user due to internal error: ${e.reason}")
       InternalServerError
 
     case ex: AuthorisationException ⇒
-      Logger.warn(s"could not authenticate user due to: ${ex.reason}")
+      logger.warn(s"could not authenticate user due to: ${ex.reason}")
       Forbidden
   }
 

@@ -23,7 +23,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 import javax.inject.{Inject, Singleton}
 import org.quartz.CronExpression
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
@@ -39,7 +39,7 @@ class ProcessingSupervisor @Inject()(
   servicesConfig: ServicesConfig,
   emailConnector: EmailConnector
 )(implicit ec: ExecutionContext, appConfig: AppConfig)
-    extends Actor {
+    extends Actor with Logging {
 
   lazy val repository = new HtsReminderMongoRepository(mongoApi)
 
@@ -86,20 +86,20 @@ class ProcessingSupervisor @Inject()(
   override def receive: Receive = {
 
     case STOP => {
-      Logger.info("[ProcessingSupervisor] received while not processing: STOP received")
+      logger.info("[ProcessingSupervisor] received while not processing: STOP received")
       lockrepo.releaseLock(lockKeeper.lockId, lockKeeper.serverId)
     }
 
     case BOOTSTRAP => {
 
-      Logger.info("[ProcessingSupervisor] BOOTSTRAP UserSchedule Quartz Scheduler processing started")
+      logger.info("[ProcessingSupervisor] BOOTSTRAP UserSchedule Quartz Scheduler processing started")
 
       val scheduler = QuartzSchedulerExtension(context.system)
       val isExpressionValid = CronExpression.isValidExpression(userScheduleCronExpression)
 
       (isUserScheduleEnabled, isExpressionValid) match {
         case (true, true) =>
-          Logger.info(
+          logger.info(
             s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
           scheduler
             .createSchedule(
@@ -110,18 +110,18 @@ class ProcessingSupervisor @Inject()(
           scheduler.schedule("UserScheduleJob", self, START)
 
         case (_, false) =>
-          Logger.warn(
+          logger.warn(
             s"UserScheduleJob cannot be Scheduled due to invalid cronExpression supplied in configuration : $userScheduleCronExpression")
 
         case _ =>
-          Logger.warn(s"UserScheduleJob cannot be Scheduled. Please check configuration parameters: " +
+          logger.warn(s"UserScheduleJob cannot be Scheduled. Please check configuration parameters: " +
             s"userScheduleCronExpression = $userScheduleCronExpression and isUserScheduleEnabled = $isUserScheduleEnabled")
       }
     }
 
     case START => {
 
-      Logger.info(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = $repoLockPeriod")
+      logger.info(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = $repoLockPeriod")
 
       val currentDate = LocalDate.now(ZoneId.of("Europe/London"))
 
@@ -130,7 +130,7 @@ class ProcessingSupervisor @Inject()(
 
           repository.findHtsUsersToProcess().map {
             case Some(requests) if requests.nonEmpty => {
-              Logger.info(s"[ProcessingSupervisor][receive] took ${requests.size} requests)")
+              logger.info(s"[ProcessingSupervisor][receive] took ${requests.size} requests)")
 
               for (request <- requests) {
 
@@ -140,22 +140,22 @@ class ProcessingSupervisor @Inject()(
 
             }
             case _ => {
-              Logger.info(s"[ProcessingSupervisor][receive] no requests pending")
+              logger.info(s"[ProcessingSupervisor][receive] no requests pending")
             }
           }
         }
         .map {
           case Some(thing) => {
 
-            Logger.info(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
+            logger.info(s"[ProcessingSupervisor][receive] OBTAINED mongo lock")
 
           }
           case _ => {
-            Logger.info(s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock.")
+            logger.info(s"[ProcessingSupervisor][receive] failed to OBTAIN mongo lock.")
           }
         }
 
-      Logger.info("Exiting START message processor by ProcessingSupervisor")
+      logger.info("Exiting START message processor by ProcessingSupervisor")
 
     }
   }
