@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ case class HtsUserSchedule(
   nextSendDate: LocalDate = LocalDate.now(),
   callBackUrlRef: String = "")
 
-case class UpdateCallBackRef(reminder: HtsUserSchedule, callBackRefUrl: String)
+case class UpdateCallBackRef(reminder: HtsUserSchedule, callBackRefUrl: String, monthName: String)
 
-case class UpdateCallBackSuccess(reminder: HtsUserSchedule, callBackRefUrl: String)
+case class UpdateCallBackSuccess(reminder: HtsUserSchedule, callBackRefUrl: String, monthName: String)
 
 case class CancelHtsUserReminder(nino: String)
 
@@ -122,3 +122,5 @@ object EventItem {
   )(EventItem.apply(_, _))
 
 }
+
+case class HtsUserScheduleMsg(htsUserSchedule: HtsUserSchedule, monthName: String)

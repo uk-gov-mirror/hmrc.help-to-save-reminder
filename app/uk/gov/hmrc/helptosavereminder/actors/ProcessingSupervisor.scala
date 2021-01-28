@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
+import java.time.{LocalDate, ZoneId}
 import java.util.TimeZone
 
 import akka.actor.{Actor, ActorRef, Props}
@@ -26,6 +27,7 @@ import play.api.Logger
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.ActorUtils._
+import uk.gov.hmrc.helptosavereminder.models.HtsUserScheduleMsg
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.lock.{LockKeeper, LockMongoRepository, LockRepository}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -97,7 +99,8 @@ class ProcessingSupervisor @Inject()(
 
       (isUserScheduleEnabled, isExpressionValid) match {
         case (true, true) =>
-          Logger.info(s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
+          Logger.info(
+            s"[ProcessingSupervisor] BOOTSTRAP is scheduled with userScheduleCronExpression = $userScheduleCronExpression")
           scheduler
             .createSchedule(
               "UserScheduleJob",
@@ -120,6 +123,8 @@ class ProcessingSupervisor @Inject()(
 
       Logger.info(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = $repoLockPeriod")
 
+      val monthName = LocalDate.now(ZoneId.of("Europe/London")).getMonth.toString.toLowerCase.capitalize
+
       lockKeeper
         .tryLock {
 
@@ -129,7 +134,7 @@ class ProcessingSupervisor @Inject()(
 
               for (request <- requests) {
 
-                emailSenderActor ! request
+                emailSenderActor ! HtsUserScheduleMsg(request, monthName)
 
               }
 

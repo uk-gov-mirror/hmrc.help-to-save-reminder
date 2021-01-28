@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import javax.inject.Singleton
 import play.api.Logger
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
-import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUserSchedule, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUserSchedule, HtsUserScheduleMsg, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
 import uk.gov.hmrc.http.HeaderCarrier
@@ -51,10 +51,13 @@ class EmailSenderActor @Inject()(
 
   override def receive: Receive = {
 
-    case htsUserReminder: HtsUserSchedule => {
+    case htsUserReminderMsg: HtsUserScheduleMsg => {
 
       val callBackRef = UUID.randomUUID().toString
-      htsUserUpdateActor ! UpdateCallBackRef(htsUserReminder, callBackRef)
+      htsUserUpdateActor ! UpdateCallBackRef(
+        htsUserReminderMsg.htsUserSchedule,
+        callBackRef,
+        htsUserReminderMsg.monthName)
 
     }
 
@@ -66,7 +69,8 @@ class EmailSenderActor @Inject()(
         HtsReminderTemplate(
           reminder.email,
           reminder.firstName + " " + reminder.lastName,
-          successReminder.callBackRefUrl)
+          successReminder.callBackRefUrl,
+          successReminder.monthName)
 
       sendReceivedTemplatedEmail(template).map({
         case true => {
@@ -92,12 +96,10 @@ class EmailSenderActor @Inject()(
 
     Logger.debug(s"The callback URL = $callBackUrl")
 
-    val monthName = LocalDate.now(ZoneId.of("Europe/London")).getMonth.toString.toLowerCase.capitalize
-
     val request = SendTemplatedEmailRequest(
       List(template.email),
       sendEmailTemplateId,
-      Map(nameParam -> template.name, monthParam -> monthName),
+      Map(nameParam -> template.name, monthParam -> template.monthName),
       callBackUrl)
 
     sendEmail(request)

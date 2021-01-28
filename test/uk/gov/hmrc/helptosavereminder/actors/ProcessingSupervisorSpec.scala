@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
+import java.time.{LocalDate, ZoneId}
+
 import akka.actor.{ActorSystem, Props}
 import akka.testkit._
 import com.kenshoo.play.metrics.PlayModule
@@ -28,6 +30,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.{Application, Mode}
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
+import uk.gov.hmrc.helptosavereminder.models.HtsUserScheduleMsg
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HttpClient
@@ -95,10 +98,12 @@ class ReminderSchedulerSpec
         "process-supervisor1"
       )
 
-      val mockObject = ReminderGenerator.nextReminder
+      val monthName = LocalDate.now(ZoneId.of("Europe/London")).getMonth.toString.toLowerCase.capitalize
+
+      val mockObject = HtsUserScheduleMsg(ReminderGenerator.nextReminder, monthName)
 
       when(mockRepository.findHtsUsersToProcess())
-        .thenReturn(Future.successful(Some(List(mockObject))))
+        .thenReturn(Future.successful(Some(List(mockObject.htsUserSchedule))))
 
       within(5 seconds) {
 

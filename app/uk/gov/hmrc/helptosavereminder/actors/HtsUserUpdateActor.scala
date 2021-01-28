@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package uk.gov.hmrc.helptosavereminder.actors
 import akka.actor._
 import javax.inject.Singleton
 import play.api.Logger
-import uk.gov.hmrc.helptosavereminder.models.{HtsUserSchedule, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsUserSchedule, HtsUserScheduleMsg, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 
 import scala.concurrent.ExecutionContext
@@ -28,7 +28,8 @@ import scala.concurrent.ExecutionContext
 class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends Actor {
 
   override def receive: Receive = {
-    case reminder: HtsUserSchedule => {
+    case htsUserScheduleMsg: HtsUserScheduleMsg => {
+      val reminder = htsUserScheduleMsg.htsUserSchedule
       repository.updateNextSendDate(reminder.nino.value, reminder.nextSendDate).map {
         case true => {
           Logger.debug(s"Updated the User nextSendDate for ${reminder.nino}")
@@ -45,7 +46,10 @@ class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: Ex
         case true => {
           Logger.debug(
             s"Updated the User callBackRef for ${updateReminder.reminder.nino.value} with value : ${updateReminder.callBackRefUrl}")
-          origSender ! UpdateCallBackSuccess(updateReminder.reminder, updateReminder.callBackRefUrl)
+          origSender ! UpdateCallBackSuccess(
+            updateReminder.reminder,
+            updateReminder.callBackRefUrl,
+            updateReminder.monthName)
         }
         case _ => Logger.warn(s"Failed to update CallbackRef for the User: ${updateReminder.reminder.nino.value}")
       }
