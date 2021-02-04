@@ -19,7 +19,7 @@ package uk.gov.hmrc.helptosavereminder.actors
 import akka.actor._
 import javax.inject.Singleton
 import play.api.Logger
-import uk.gov.hmrc.helptosavereminder.models.{HtsUserSchedule, HtsUserScheduleMsg, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsUserSchedule, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 
 import scala.concurrent.ExecutionContext
