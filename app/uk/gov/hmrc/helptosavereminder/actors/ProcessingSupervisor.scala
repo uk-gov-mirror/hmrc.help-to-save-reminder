@@ -123,7 +123,7 @@ class ProcessingSupervisor @Inject()(
 
       Logger.info(s"START message received by ProcessingSupervisor and forceLockReleaseAfter = $repoLockPeriod")
 
-      val monthName = LocalDate.now(ZoneId.of("Europe/London")).getMonth.toString.toLowerCase.capitalize
+      val currentDate = LocalDate.now(ZoneId.of("Europe/London"))
 
       lockKeeper
         .tryLock {
@@ -134,7 +134,7 @@ class ProcessingSupervisor @Inject()(
 
               for (request <- requests) {
 
-                emailSenderActor ! HtsUserScheduleMsg(request, monthName)
+                emailSenderActor ! HtsUserScheduleMsg(request, currentDate)
 
               }
 

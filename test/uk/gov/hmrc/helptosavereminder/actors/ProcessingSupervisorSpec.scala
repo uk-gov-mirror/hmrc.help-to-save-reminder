@@ -98,9 +98,9 @@ class ReminderSchedulerSpec
         "process-supervisor1"
       )
 
-      val monthName = LocalDate.now(ZoneId.of("Europe/London")).getMonth.toString.toLowerCase.capitalize
+      val currentDate = LocalDate.now(ZoneId.of("Europe/London"))
 
-      val mockObject = HtsUserScheduleMsg(ReminderGenerator.nextReminder, monthName)
+      val mockObject = HtsUserScheduleMsg(ReminderGenerator.nextReminder, currentDate)
 
       when(mockRepository.findHtsUsersToProcess())
         .thenReturn(Future.successful(Some(List(mockObject.htsUserSchedule))))

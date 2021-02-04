@@ -95,7 +95,9 @@ class EmailSenderActorSpec
         "email-sender-actor"
       )
 
-      val mockObject = HtsUserScheduleMsg(ReminderGenerator.nextReminder, "monthName")
+      val currentDate = LocalDate.now(ZoneId.of("Europe/London"))
+
+      val mockObject = HtsUserScheduleMsg(ReminderGenerator.nextReminder, currentDate)
 
       val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
 
@@ -116,9 +118,9 @@ class EmailSenderActorSpec
 
         emailSenderActor ! mockObject
 
-        val monthName = LocalDate.now(ZoneId.of("Europe/London")).getMonth.toString.toLowerCase.capitalize
+        val monthName = currentDate.getMonth.toString.toLowerCase.capitalize
 
-        emailSenderActor ! UpdateCallBackSuccess(mockObject.htsUserSchedule, "callBackSampleRef", monthName)
+        emailSenderActor ! UpdateCallBackSuccess(mockObject, "callBackSampleRef")
         //htsUserUpdateActorProbe.expectMsg(mockObject)
 
       }

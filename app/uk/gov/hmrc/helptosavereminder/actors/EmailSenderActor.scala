@@ -54,28 +54,26 @@ class EmailSenderActor @Inject()(
     case htsUserReminderMsg: HtsUserScheduleMsg => {
 
       val callBackRef = UUID.randomUUID().toString
-      htsUserUpdateActor ! UpdateCallBackRef(
-        htsUserReminderMsg.htsUserSchedule,
-        callBackRef,
-        htsUserReminderMsg.monthName)
+      htsUserUpdateActor ! UpdateCallBackRef(htsUserReminderMsg, callBackRef)
 
     }
 
     case successReminder: UpdateCallBackSuccess => {
 
-      val reminder = successReminder.reminder
+      val reminder = successReminder.reminder.htsUserSchedule
+      val monthName = successReminder.reminder.currentDate.getMonth.toString.toLowerCase.capitalize
 
       val template =
         HtsReminderTemplate(
           reminder.email,
           reminder.firstName + " " + reminder.lastName,
           successReminder.callBackRefUrl,
-          successReminder.monthName)
+          monthName)
 
       sendReceivedTemplatedEmail(template).map({
         case true => {
           val nextSendDate =
-            DateTimeFunctions.getNextSendDate(reminder.daysToReceive, LocalDate.now(ZoneId.of("Europe/London")))
+            DateTimeFunctions.getNextSendDate(reminder.daysToReceive, successReminder.reminder.currentDate)
           nextSendDate match {
             case Some(x) =>
               val updatedReminder = reminder.copy(nextSendDate = x)
@@ -83,7 +81,8 @@ class EmailSenderActor @Inject()(
             case None =>
           }
         }
-        case false => Logger.warn(s"nextSendDate for User: ${successReminder.reminder.nino} cannot be updated.")
+        case false =>
+          Logger.warn(s"nextSendDate for User: ${successReminder.reminder.htsUserSchedule.nino} cannot be updated.")
       })
 
     }

@@ -35,9 +35,9 @@ case class HtsUserSchedule(
   nextSendDate: LocalDate = LocalDate.now(),
   callBackUrlRef: String = "")
 
-case class UpdateCallBackRef(reminder: HtsUserSchedule, callBackRefUrl: String, monthName: String)
+case class UpdateCallBackRef(reminder: HtsUserScheduleMsg, callBackRefUrl: String)
 
-case class UpdateCallBackSuccess(reminder: HtsUserSchedule, callBackRefUrl: String, monthName: String)
+case class UpdateCallBackSuccess(reminder: HtsUserScheduleMsg, callBackRefUrl: String)
 
 case class CancelHtsUserReminder(nino: String)
 
@@ -123,4 +123,4 @@ object EventItem {
 
 }
 
-case class HtsUserScheduleMsg(htsUserSchedule: HtsUserSchedule, monthName: String)
+case class HtsUserScheduleMsg(htsUserSchedule: HtsUserSchedule, currentDate: LocalDate)
