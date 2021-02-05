@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
+import java.time.{LocalDate, ZoneId}
+
 import akka.actor.{ActorSystem, Props}
 import akka.testkit._
 import com.kenshoo.play.metrics.PlayModule
@@ -30,7 +32,7 @@ import play.api.{Application, Mode}
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
-import uk.gov.hmrc.helptosavereminder.models.{SendTemplatedEmailRequest, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsUserScheduleMsg, SendTemplatedEmailRequest, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.lock.LockRepository
@@ -93,7 +95,9 @@ class EmailSenderActorSpec
         "email-sender-actor"
       )
 
-      val mockObject = ReminderGenerator.nextReminder
+      val currentDate = LocalDate.now(ZoneId.of("Europe/London"))
+
+      val mockObject = HtsUserScheduleMsg(ReminderGenerator.nextReminder, currentDate)
 
       val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
 
@@ -113,6 +117,8 @@ class EmailSenderActorSpec
       within(5 seconds) {
 
         emailSenderActor ! mockObject
+
+        val monthName = currentDate.getMonth.toString.toLowerCase.capitalize
 
         emailSenderActor ! UpdateCallBackSuccess(mockObject, "callBackSampleRef")
         //htsUserUpdateActorProbe.expectMsg(mockObject)

@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
+import java.time.{LocalDate, ZoneId}
+
 import akka.actor.{ActorSystem, Props}
 import akka.testkit._
 import com.kenshoo.play.metrics.PlayModule
@@ -28,6 +30,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.{Application, Mode}
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
+import uk.gov.hmrc.helptosavereminder.models.HtsUserScheduleMsg
 import uk.gov.hmrc.helptosavereminder.models.test.ReminderGenerator
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.http.HttpClient
@@ -95,10 +98,12 @@ class ReminderSchedulerSpec
         "process-supervisor1"
       )
 
-      val mockObject = ReminderGenerator.nextReminder
+      val currentDate = LocalDate.now(ZoneId.of("Europe/London"))
+
+      val mockObject = HtsUserScheduleMsg(ReminderGenerator.nextReminder, currentDate)
 
       when(mockRepository.findHtsUsersToProcess())
-        .thenReturn(Future.successful(Some(List(mockObject))))
+        .thenReturn(Future.successful(Some(List(mockObject.htsUserSchedule))))
 
       within(5 seconds) {
 

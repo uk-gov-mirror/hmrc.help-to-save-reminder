@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.helptosavereminder.actors
 
-import java.time.{LocalDate, ZoneId}
 import java.util.UUID
 
 import akka.actor._
@@ -25,7 +24,7 @@ import javax.inject.Singleton
 import play.api.Logger
 import uk.gov.hmrc.helptosavereminder.config.AppConfig
 import uk.gov.hmrc.helptosavereminder.connectors.EmailConnector
-import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUserSchedule, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
+import uk.gov.hmrc.helptosavereminder.models.{HtsReminderTemplate, HtsUserScheduleMsg, SendTemplatedEmailRequest, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 import uk.gov.hmrc.helptosavereminder.util.DateTimeFunctions
 import uk.gov.hmrc.http.HeaderCarrier
@@ -51,27 +50,29 @@ class EmailSenderActor @Inject()(
 
   override def receive: Receive = {
 
-    case htsUserReminder: HtsUserSchedule => {
+    case htsUserReminderMsg: HtsUserScheduleMsg => {
 
       val callBackRef = UUID.randomUUID().toString
-      htsUserUpdateActor ! UpdateCallBackRef(htsUserReminder, callBackRef)
+      htsUserUpdateActor ! UpdateCallBackRef(htsUserReminderMsg, callBackRef)
 
     }
 
     case successReminder: UpdateCallBackSuccess => {
 
-      val reminder = successReminder.reminder
+      val reminder = successReminder.reminder.htsUserSchedule
+      val monthName = successReminder.reminder.currentDate.getMonth.toString.toLowerCase.capitalize
 
       val template =
         HtsReminderTemplate(
           reminder.email,
           reminder.firstName + " " + reminder.lastName,
-          successReminder.callBackRefUrl)
+          successReminder.callBackRefUrl,
+          monthName)
 
       sendReceivedTemplatedEmail(template).map({
         case true => {
           val nextSendDate =
-            DateTimeFunctions.getNextSendDate(reminder.daysToReceive, LocalDate.now(ZoneId.of("Europe/London")))
+            DateTimeFunctions.getNextSendDate(reminder.daysToReceive, successReminder.reminder.currentDate)
           nextSendDate match {
             case Some(x) =>
               val updatedReminder = reminder.copy(nextSendDate = x)
@@ -79,7 +80,8 @@ class EmailSenderActor @Inject()(
             case None =>
           }
         }
-        case false => Logger.warn(s"nextSendDate for User: ${successReminder.reminder.nino} cannot be updated.")
+        case false =>
+          Logger.warn(s"nextSendDate for User: ${successReminder.reminder.htsUserSchedule.nino} cannot be updated.")
       })
 
     }
@@ -92,12 +94,10 @@ class EmailSenderActor @Inject()(
 
     Logger.debug(s"The callback URL = $callBackUrl")
 
-    val monthName = LocalDate.now(ZoneId.of("Europe/London")).getMonth.toString.toLowerCase.capitalize
-
     val request = SendTemplatedEmailRequest(
       List(template.email),
       sendEmailTemplateId,
-      Map(nameParam -> template.name, monthParam -> monthName),
+      Map(nameParam -> template.name, monthParam -> template.monthName),
       callBackUrl)
 
     sendEmail(request)

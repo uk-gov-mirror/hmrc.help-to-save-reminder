@@ -28,27 +28,31 @@ import scala.concurrent.ExecutionContext
 class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends Actor {
 
   override def receive: Receive = {
-    case reminder: HtsUserSchedule => {
-      repository.updateNextSendDate(reminder.nino.value, reminder.nextSendDate).map {
+    case htsUserSchedule: HtsUserSchedule => {
+      repository.updateNextSendDate(htsUserSchedule.nino.value, htsUserSchedule.nextSendDate).map {
         case true => {
-          Logger.debug(s"Updated the User nextSendDate for ${reminder.nino}")
+          Logger.debug(s"Updated the User nextSendDate for ${htsUserSchedule.nino}")
         }
         case _ => {
-          Logger.warn(s"Failed to update nextSendDate for the User: ${reminder.nino}")
+          Logger.warn(s"Failed to update nextSendDate for the User: ${htsUserSchedule.nino}")
         }
       }
     }
 
     case updateReminder: UpdateCallBackRef => {
       val origSender = sender
-      repository.updateCallBackRef(updateReminder.reminder.nino.value, updateReminder.callBackRefUrl).map {
-        case true => {
-          Logger.debug(
-            s"Updated the User callBackRef for ${updateReminder.reminder.nino.value} with value : ${updateReminder.callBackRefUrl}")
-          origSender ! UpdateCallBackSuccess(updateReminder.reminder, updateReminder.callBackRefUrl)
+      repository
+        .updateCallBackRef(updateReminder.reminder.htsUserSchedule.nino.value, updateReminder.callBackRefUrl)
+        .map {
+          case true => {
+            Logger.debug(
+              s"Updated the User callBackRef for ${updateReminder.reminder.htsUserSchedule.nino.value} with value : ${updateReminder.callBackRefUrl}")
+            origSender ! UpdateCallBackSuccess(updateReminder.reminder, updateReminder.callBackRefUrl)
+          }
+          case _ =>
+            Logger.warn(
+              s"Failed to update CallbackRef for the User: ${updateReminder.reminder.htsUserSchedule.nino.value}")
         }
-        case _ => Logger.warn(s"Failed to update CallbackRef for the User: ${updateReminder.reminder.nino.value}")
-      }
     }
   }
 }
