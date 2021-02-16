@@ -97,6 +97,35 @@ class ProcessingSupervisor @Inject()(
       val scheduler = QuartzSchedulerExtension(context.system)
       val isExpressionValid = CronExpression.isValidExpression(userScheduleCronExpression)
 
+      repository.findAll().map {
+        case requests if requests.nonEmpty => {
+          val nextScheduledDates = requests.map(request => request.nextSendDate).toSet
+          val daysToRecieve = requests.map(request => request.daysToReceive).toSet
+          val emailDuplicateOccurrencesSet = requests.groupBy(_.email).mapValues(_.size).groupBy(_._2).mapValues(_.size)
+
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${requests.size} requests")
+          Logger.info(
+            s"[ProcessingSupervisor][BOOTSTRAP] found ${requests.map(request => request.email).toSet.size} unique emails")
+
+          Logger.info(
+            s"[ProcessingSupervisor][BOOTSTRAP] found ${emailDuplicateOccurrencesSet.mkString(", ")} emailsOccurrences[Duplicates ,Occurrences]")
+
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${nextScheduledDates.mkString(", ")} [nextSendDates]")
+          nextScheduledDates.foreach(date =>
+            Logger.info(
+              s"[ProcessingSupervisor][BOOTSTRAP] found ${requests.count(request => request.nextSendDate == date)} [nextSendDate : $date]"))
+
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${daysToRecieve.mkString(", ")} [daysToReceive]")
+          daysToRecieve.foreach(days =>
+            Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found ${requests
+              .count(usr => usr.daysToReceive == days)} Set to ${days.mkString(", ")}"))
+        }
+
+        case _ => {
+          Logger.info(s"[ProcessingSupervisor][BOOTSTRAP] found no requests found")
+        }
+      }
+
       (isUserScheduleEnabled, isExpressionValid) match {
         case (true, true) =>
           Logger.info(
