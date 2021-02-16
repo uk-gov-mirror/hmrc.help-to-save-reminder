@@ -18,23 +18,24 @@ package uk.gov.hmrc.helptosavereminder.actors
 
 import akka.actor._
 import javax.inject.Singleton
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.helptosavereminder.models.{HtsUserSchedule, UpdateCallBackRef, UpdateCallBackSuccess}
 import uk.gov.hmrc.helptosavereminder.repo.HtsReminderMongoRepository
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext) extends Actor {
+class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: ExecutionContext)
+    extends Actor with Logging {
 
   override def receive: Receive = {
     case htsUserSchedule: HtsUserSchedule => {
       repository.updateNextSendDate(htsUserSchedule.nino.value, htsUserSchedule.nextSendDate).map {
         case true => {
-          Logger.debug(s"Updated the User nextSendDate for ${htsUserSchedule.nino}")
+          logger.debug(s"Updated the User nextSendDate for ${htsUserSchedule.nino}")
         }
         case _ => {
-          Logger.warn(s"Failed to update nextSendDate for the User: ${htsUserSchedule.nino}")
+          logger.warn(s"Failed to update nextSendDate for the User: ${htsUserSchedule.nino}")
         }
       }
     }
@@ -45,12 +46,12 @@ class HtsUserUpdateActor(repository: HtsReminderMongoRepository)(implicit ec: Ex
         .updateCallBackRef(updateReminder.reminder.htsUserSchedule.nino.value, updateReminder.callBackRefUrl)
         .map {
           case true => {
-            Logger.debug(
+            logger.debug(
               s"Updated the User callBackRef for ${updateReminder.reminder.htsUserSchedule.nino.value} with value : ${updateReminder.callBackRefUrl}")
             origSender ! UpdateCallBackSuccess(updateReminder.reminder, updateReminder.callBackRefUrl)
           }
           case _ =>
-            Logger.warn(
+            logger.warn(
               s"Failed to update CallbackRef for the User: ${updateReminder.reminder.htsUserSchedule.nino.value}")
         }
     }

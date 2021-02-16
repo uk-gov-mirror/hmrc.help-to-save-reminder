@@ -17,7 +17,7 @@
 package uk.gov.hmrc.helptosavereminder.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -35,7 +35,7 @@ class HtsUserUpdateController @Inject()(
   repository: HtsReminderRepository,
   cc: ControllerComponents,
   override val authConnector: AuthConnector)(implicit val ec: ExecutionContext)
-    extends HtsReminderAuth(authConnector, cc) {
+    extends HtsReminderAuth(authConnector, cc) with Logging {
 
   val notAllowedThisNino: Future[Result] =
     Future.successful(Forbidden("You can't access a Nino that isn't associated with the one you're logged in with"))
@@ -43,7 +43,7 @@ class HtsUserUpdateController @Inject()(
   def update(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
     request.body.asJson.map(_.validate[HtsUserSchedule]) match {
       case Some(JsSuccess(htsUser, _)) if htsUser.nino.nino === nino ⇒ {
-        Logger.debug(s"The HtsUser received from frontend to update is : ${htsUser.nino.value}")
+        logger.debug(s"The HtsUser received from frontend to update is : ${htsUser.nino.value}")
         repository.updateReminderUser(htsUser).map {
           case true => {
             Ok(Json.toJson(htsUser))
@@ -56,11 +56,11 @@ class HtsUserUpdateController @Inject()(
 
       case Some(error: JsError) ⇒
         val errorString = error.prettyPrint()
-        Logger.warn(s"Could not parse HtsUser JSON in request body: $errorString")
+        logger.warn(s"Could not parse HtsUser JSON in request body: $errorString")
         Future.successful(BadRequest(s"Could not parse HtsUser JSON in request body: $errorString"))
 
       case None ⇒
-        Logger.warn("No JSON body found in request")
+        logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
 
     }
@@ -78,7 +78,7 @@ class HtsUserUpdateController @Inject()(
   def deleteHtsUser(): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.map(_.validate[CancelHtsUserReminder]) match {
       case Some(JsSuccess(userReminder, _)) ⇒ {
-        Logger.debug(s"The HtsUser received from frontend to delete is : ${userReminder.nino}")
+        logger.debug(s"The HtsUser received from frontend to delete is : ${userReminder.nino}")
         repository.deleteHtsUser(userReminder.nino).map {
           case Right(()) => {
             Ok
@@ -88,11 +88,11 @@ class HtsUserUpdateController @Inject()(
       }
       case Some(error: JsError) ⇒
         val errorString = error.prettyPrint()
-        Logger.warn(s"Could not parse CancelHtsUserReminder JSON in request body: $errorString")
+        logger.warn(s"Could not parse CancelHtsUserReminder JSON in request body: $errorString")
         Future.successful(BadRequest(s"Could not parse CancelHtsUserReminder JSON in request body: $errorString"))
 
       case None ⇒
-        Logger.warn("No JSON body found in request")
+        logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
     }
   }
@@ -100,7 +100,7 @@ class HtsUserUpdateController @Inject()(
   def updateEmail(): Action[AnyContent] = ggAuthorisedWithNino { implicit request => implicit nino ⇒
     request.body.asJson.map(_.validate[UpdateEmail]) match {
       case Some(JsSuccess(userReminder, _)) if userReminder.nino.nino === nino ⇒ {
-        Logger.debug(s"The HtsUser received from frontend to delete is : ${userReminder.nino.value}")
+        logger.debug(s"The HtsUser received from frontend to delete is : ${userReminder.nino.value}")
         repository
           .updateEmail(userReminder.nino.value, userReminder.firstName, userReminder.lastName, userReminder.email)
           .map {
@@ -114,11 +114,11 @@ class HtsUserUpdateController @Inject()(
 
       case Some(error: JsError) ⇒
         val errorString = error.prettyPrint()
-        Logger.warn(s"Could not parse UpdateEmail JSON in request body: $errorString")
+        logger.warn(s"Could not parse UpdateEmail JSON in request body: $errorString")
         Future.successful(BadRequest(s"Could not parse UpdateEmail JSON in request body:: $errorString"))
 
       case None ⇒
-        Logger.warn("No JSON body found in request")
+        logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
     }
   }

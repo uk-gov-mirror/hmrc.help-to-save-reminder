@@ -17,7 +17,7 @@
 package uk.gov.hmrc.helptosavereminder.audit
 
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.helptosavereminder.models.HTSEvent
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -25,13 +25,13 @@ import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 @Singleton
-class HTSAuditor @Inject()(val auditConnector: AuditConnector) {
+class HTSAuditor @Inject()(val auditConnector: AuditConnector) extends Logging {
 
   def sendEvent(event: HTSEvent)(implicit ec: ExecutionContext): Unit = {
     val checkEventResult = auditConnector.sendExtendedEvent(event.value)
     checkEventResult.failed.foreach {
       case NonFatal(e) ⇒
-        Logger.warn(s"Unable to post audit event of type ${event.value.auditType} to audit connector - ${e.getMessage}")
+        logger.warn(s"Unable to post audit event of type ${event.value.auditType} to audit connector - ${e.getMessage}")
     }
   }
 }

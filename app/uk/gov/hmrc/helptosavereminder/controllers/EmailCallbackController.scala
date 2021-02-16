@@ -19,7 +19,7 @@ package uk.gov.hmrc.helptosavereminder.controllers
 import cats.instances.string._
 import cats.syntax.eq._
 import com.google.inject.Inject
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.helptosavereminder.audit.HTSAuditor
@@ -39,20 +39,20 @@ class EmailCallbackController @Inject()(
   repository: HtsReminderMongoRepository,
   auditor: HTSAuditor,
   emailConnector: EmailConnector)(implicit ec: ExecutionContext, appConfig: AppConfig)
-    extends BackendController(cc) {
+    extends BackendController(cc) with Logging {
 
   def handleCallBack(callBackReference: String): Action[AnyContent] = Action.async { implicit request =>
     request.body.asJson.map(_.validate[EventsMap]) match {
       case Some(JsSuccess(eventsMap, _)) ⇒ {
         if (eventsMap.events.exists(x => (x.event === "PermanentBounce"))) {
-          Logger.info(s"Reminder Callback service called for callBackReference = $callBackReference")
+          logger.info(s"Reminder Callback service called for callBackReference = $callBackReference")
           repository.findByCallBackUrlRef(callBackReference).flatMap {
             case Some(htsUserSchedule) =>
               val url = s"${servicesConfig.baseUrl("email")}/hmrc/bounces/${htsUserSchedule.email}"
-              Logger.debug(s"The URL to request email deletion is $url")
+              logger.debug(s"The URL to request email deletion is $url")
               repository.deleteHtsUserByCallBack(htsUserSchedule.nino.value, callBackReference).flatMap {
                 case Left(error) => {
-                  Logger.warn(
+                  logger.warn(
                     s"Could not delete from HtsReminder Repository for NINO = ${htsUserSchedule.nino.value}, $error")
                   Future.successful(Ok(s"Error deleting the hts schedule by callBackReference = $callBackReference"))
                 }
@@ -62,16 +62,16 @@ class EmailCallbackController @Inject()(
                     HtsReminderUserDeletedEvent(
                       HtsReminderUserDeleted(htsUserSchedule.nino.value, htsUserSchedule.email),
                       path))
-                  Logger.debug(
+                  logger.debug(
                     s"[EmailCallbackController] Email deleted from HtsReminder Repository for user = : ${htsUserSchedule.nino}")
 
                   emailConnector
                     .unBlockEmail(url) map {
                     case true =>
-                      Logger.debug(s"Email successfully unblocked for request : $url")
+                      logger.debug(s"Email successfully unblocked for request : $url")
                       Future.successful(Ok)
                     case _ =>
-                      Logger.debug(s"A request to unblock for Email is returned with error for $url")
+                      logger.debug(s"A request to unblock for Email is returned with error for $url")
                       Future.successful(NOT_FOUND)
                   }
                   Future.successful(Ok)
@@ -80,7 +80,7 @@ class EmailCallbackController @Inject()(
             case None => Future.failed(new Exception("No Hts Schedule found"))
           }
         } else {
-          Logger.debug(
+          logger.debug(
             s"CallBackRequest received for $callBackReference without PermanentBounce Event and " +
               s"eventsList received from Email Service = ${eventsMap.events}")
           Future.successful(Ok)
@@ -88,11 +88,11 @@ class EmailCallbackController @Inject()(
       }
       case Some(error: JsError) ⇒
         val errorString = error.prettyPrint()
-        Logger.warn(s"Unable to parse Events List for CallBackRequest = $errorString")
+        logger.warn(s"Unable to parse Events List for CallBackRequest = $errorString")
         Future.successful(BadRequest(s"Unable to parse Events List for CallBackRequest = $errorString"))
 
       case None ⇒
-        Logger.warn("No JSON body found in request")
+        logger.warn("No JSON body found in request")
         Future.successful(BadRequest(s"No JSON body found in request"))
     }
   }

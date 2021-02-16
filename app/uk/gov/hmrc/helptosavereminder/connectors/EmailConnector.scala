@@ -19,7 +19,7 @@ package uk.gov.hmrc.helptosavereminder.connectors
 import cats.instances.int._
 import cats.syntax.eq._
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
+import play.api.Logging
 import play.api.http.Status.{ACCEPTED, OK}
 import uk.gov.hmrc.helptosavereminder.models.SendTemplatedEmailRequest
 import uk.gov.hmrc.helptosavereminder.models.SendTemplatedEmailRequest.format
@@ -29,7 +29,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EmailConnector @Inject()(http: HttpClient) {
+class EmailConnector @Inject()(http: HttpClient) extends Logging {
 
   def sendEmail(request: SendTemplatedEmailRequest, url: String)(
     implicit hc: HeaderCarrier,
@@ -37,8 +37,8 @@ class EmailConnector @Inject()(http: HttpClient) {
     http.POST(url, request, Seq(("Content-Type", "application/json")))(format, readRaw, hc, ec) map { response =>
       response.status match {
         case ACCEPTED =>
-          Logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
-        case _ => Logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
+          logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
+        case _ => logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
       }
     }
 
@@ -46,9 +46,9 @@ class EmailConnector @Inject()(http: HttpClient) {
     http.DELETE(url, Seq(("Content-Type", "application/json")))(readRaw, hc, ec) map { response =>
       response.status match {
         case x if x === OK || x === ACCEPTED =>
-          Logger.debug(s"Email is successfully unblocked: ${response.body}"); true
+          logger.debug(s"Email is successfully unblocked: ${response.body}"); true
         case _ =>
-          Logger.warn(s"[EmailSenderActor] Email not unblocked: ${response.body}"); false
+          logger.warn(s"[EmailSenderActor] Email not unblocked: ${response.body}"); false
       }
     }
 }
