@@ -53,6 +53,7 @@ class EmailSenderActor @Inject()(
     case htsUserReminderMsg: HtsUserScheduleMsg => {
 
       val callBackRef = UUID.randomUUID().toString
+      logger.info(s"New callBackRef $callBackRef")
       htsUserUpdateActor ! UpdateCallBackRef(htsUserReminderMsg, callBackRef)
 
     }
@@ -62,15 +63,18 @@ class EmailSenderActor @Inject()(
       val reminder = successReminder.reminder.htsUserSchedule
       val monthName = successReminder.reminder.currentDate.getMonth.toString.toLowerCase.capitalize
 
+      val ref = successReminder.callBackRefUrl
       val template =
         HtsReminderTemplate(
           reminder.email,
           reminder.firstName + " " + reminder.lastName,
-          successReminder.callBackRefUrl,
+          ref,
           monthName)
 
+      logger.info(s"Sending reminder for $ref")
       sendReceivedTemplatedEmail(template).map({
         case true => {
+          logger.info(s"Sent reminder for $ref")
           val nextSendDate =
             DateTimeFunctions.getNextSendDate(reminder.daysToReceive, successReminder.reminder.currentDate)
           nextSendDate match {
@@ -81,7 +85,7 @@ class EmailSenderActor @Inject()(
           }
         }
         case false =>
-          logger.warn(s"nextSendDate for User: ${successReminder.reminder.htsUserSchedule.nino} cannot be updated.")
+          logger.warn(s"Failed to send reminder for ${reminder.nino.value} $ref")
       })
 
     }
@@ -111,7 +115,7 @@ class EmailSenderActor @Inject()(
     emailConnector.sendEmail(request, url) map { response =>
       response match {
         case true => logger.debug(s"[EmailSenderActor] Email sent: $request"); true
-        case _    => logger.warn(s"[EmailSenderActor] Email not sent: $request"); false
+        case _    => logger.debug(s"[EmailSenderActor] Email not sent: $request"); false
       }
     }
   }
