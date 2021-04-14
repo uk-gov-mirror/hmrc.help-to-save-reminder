@@ -69,9 +69,11 @@ class EmailCallbackController @Inject()(
                     .unBlockEmail(url) map {
                     case true =>
                       logger.debug(s"Email successfully unblocked for request : $url")
+                      logger.info(s"Email successfully unblocked for ${htsUserSchedule.nino.value}")
                       Future.successful(Ok)
                     case _ =>
                       logger.debug(s"A request to unblock for Email is returned with error for $url")
+                      logger.warn(s"Request to unblock email failed for ${htsUserSchedule.nino.value}")
                       Future.successful(NOT_FOUND)
                   }
                   Future.successful(Ok)
@@ -88,11 +90,12 @@ class EmailCallbackController @Inject()(
       }
       case Some(error: JsError) ⇒
         val errorString = error.prettyPrint()
-        logger.warn(s"Unable to parse Events List for CallBackRequest = $errorString")
+        logger.debug(s"Unable to parse Events List for CallBackRequest = $errorString")
+        logger.warn(s"Unable to parse Events List for callBackReference = $callBackReference")
         Future.successful(BadRequest(s"Unable to parse Events List for CallBackRequest = $errorString"))
 
       case None ⇒
-        logger.warn("No JSON body found in request")
+        logger.warn(s"No JSON body found in request for callBackReference = $callBackReference")
         Future.successful(BadRequest(s"No JSON body found in request"))
     }
   }
