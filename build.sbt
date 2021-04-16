@@ -66,7 +66,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(PlayKeys.playDefaultPort := 7008)
   .settings(wartRemoverSettings)
   .settings(scoverageSettings)
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(scalafmtOnCompile := true)
 
 import play.sbt.routes.RoutesKeys
