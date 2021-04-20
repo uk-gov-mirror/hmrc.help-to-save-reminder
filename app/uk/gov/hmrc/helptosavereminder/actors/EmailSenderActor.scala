@@ -65,7 +65,11 @@ class EmailSenderActor @Inject()(
 
       val ref = successReminder.callBackRefUrl
       val template =
-        HtsReminderTemplate(reminder.email, reminder.firstName + " " + reminder.lastName, ref, monthName)
+        HtsReminderTemplate(
+          reminder.email,
+          reminder.firstName + " " + reminder.lastName,
+          ref,
+          monthName)
 
       logger.info(s"Sending reminder for $ref")
       sendReceivedTemplatedEmail(template).map({
