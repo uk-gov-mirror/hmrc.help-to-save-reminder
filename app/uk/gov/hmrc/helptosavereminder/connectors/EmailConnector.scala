@@ -38,7 +38,7 @@ class EmailConnector @Inject()(http: HttpClient) extends Logging {
       response.status match {
         case ACCEPTED =>
           logger.debug(s"[EmailSenderActor] Email sent: ${response.body}"); true
-        case _ => logger.error(s"[EmailSenderActor] Email not sent: ${response.body}"); false
+        case _ => logger.error(s"[EmailSenderActor] Email not sent: ${response.status}"); false
       }
     }
 
@@ -48,7 +48,7 @@ class EmailConnector @Inject()(http: HttpClient) extends Logging {
         case x if x === OK || x === ACCEPTED =>
           logger.debug(s"Email is successfully unblocked: ${response.body}"); true
         case _ =>
-          logger.warn(s"[EmailSenderActor] Email not unblocked: ${response.body}"); false
+          logger.warn(s"[EmailSenderActor] Email not unblocked: ${response.status}"); false
       }
     }
 }
