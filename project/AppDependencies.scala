@@ -24,7 +24,7 @@ object AppDependencies {
     "com.typesafe.akka"       %% "akka-testkit"             % "2.6.10"                % "test, it",
     "com.typesafe.play"       %% "play-test"                % current                 % "test",
     "org.pegdown"             %  "pegdown"                  % "1.6.0"                 % "test, it",
-    "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.3"                 % "test, it",
+    "org.scalatestplus.play"  %% "scalatestplus-play"       % "5.0.0"                 % "test, it",
     "org.scalatest"           %% "scalatest"                % "3.0.9"                 % "test, it",
     "org.scalamock"           %% "scalamock"                % "5.1.0"                 % "test, it"
   )
